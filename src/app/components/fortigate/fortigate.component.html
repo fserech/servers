@@ -1,0 +1,153 @@
+<div class="animate-fade-up">
+
+  <!-- Banner -->
+  <div class="forti-banner p-5 mb-4 flex items-center gap-5">
+    <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+      style="background:linear-gradient(135deg,#dc3200,#ff6400)">🛡</div>
+    <div class="flex-1">
+      <div class="font-orbitron font-bold" style="font-size:17px;letter-spacing:.06em;color:var(--tx-1)">FortiGate 200F</div>
+      <div class="font-mono" style="font-size:11px;color:var(--ac-orange);margin-top:2px">
+        NGFW · FortiOS 7.4.3 · S/N: FG200F-GTM-2024-001 · HA: Activo/Pasivo
+      </div>
+      <div class="flex gap-6 mt-3">
+        <div *ngFor="let s of [{l:'ESTADO',v:'OPERATIVO',c:'var(--ac-green)'},{l:'TOTAL',v:policies.length,c:'var(--ac-amber)'},{l:'ACTIVAS',v:enabledCount,c:'var(--ac-blue)'},{l:'BLOQUEOS',v:deniedCount,c:'var(--ac-red)'}]">
+          <div class="section-label" style="margin-bottom:2px">{{s.l}}</div>
+          <div class="font-orbitron font-bold" style="font-size:15px" [style.color]="s.c">{{s.v}}</div>
+        </div>
+      </div>
+    </div>
+    <div class="text-right">
+      <div class="section-label" style="margin-bottom:5px">ÚLTIMA SYNC</div>
+      <div class="font-mono" style="font-size:11px;color:var(--tx-2)">{{fmtDate(now)}}</div>
+      <div class="flex items-center justify-end gap-2 mt-2">
+        <span class="dot dot-green animate-pulse-dot"></span>
+        <span style="font-size:10px;color:var(--ac-green);letter-spacing:.08em">CONECTADO</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zones -->
+  <div *ngIf="!selected" class="card p-5 mb-4">
+    <div class="section-label">ZONAS DE SEGURIDAD</div>
+    <div class="grid grid-cols-5 gap-3">
+      <div *ngFor="let z of zones" class="rounded-xl p-3 text-center"
+        [style.background]="z.color+'14'" [style.border]="'1px solid '+z.color+'28'">
+        <div style="font-size:20px;margin-bottom:5px">{{z.icon}}</div>
+        <div class="font-rajdhani font-bold" style="font-size:11px;letter-spacing:.08em" [style.color]="z.color">{{z.id}}</div>
+        <div style="font-size:10px;color:var(--tx-3);margin-top:3px">{{z.desc}}</div>
+        <div class="font-mono font-bold" style="font-size:10px;color:var(--tx-4);margin-top:5px">{{zoneCount(z.id)}} políticas</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Policy list -->
+  <div *ngIf="!selected">
+    <div class="flex gap-2 items-center mb-3 flex-wrap">
+      <input [(ngModel)]="search" placeholder="Buscar política, IP, servicio, zona..."
+        class="input-field" style="width:280px"/>
+      <button *ngFor="let f of [{v:'all',l:'Todas'},{v:'ALLOW',l:'ALLOW'},{v:'DENY',l:'DENY'},{v:'enabled',l:'Enabled'},{v:'disabled',l:'Disabled'}]"
+        class="filter-pill" [class.active]="filterAction===f.v" (click)="filterAction=f.v">{{f.l}}</button>
+    </div>
+    <div class="card overflow-hidden">
+      <div class="th-row grid" style="grid-template-columns:108px 155px 138px 138px 142px 68px 68px 68px 78px">
+        <div>POL-ID</div><div>NOMBRE</div><div>SRC</div><div>DST</div>
+        <div>SERVICIO</div><div>ACCIÓN</div><div>IPS</div><div>LOG</div><div>HITS</div>
+      </div>
+      <div *ngFor="let p of filtered; let i=index"
+        class="td-row grid items-center" (click)="selected=p"
+        style="grid-template-columns:108px 155px 138px 138px 142px 68px 68px 68px 78px"
+        [style.background]="i%2!==0 ? 'var(--bg-row-alt)' : ''"
+        [style.opacity]="p.status==='disabled' ? '0.45' : '1'">
+        <div class="font-mono font-bold" style="font-size:9px;color:var(--ac-orange)">{{p.id}}</div>
+        <div>
+          <div class="font-rajdhani font-semibold" style="font-size:12px;color:var(--tx-1)">{{p.name}}</div>
+          <div style="font-size:9px;color:var(--tx-4)">{{p.status==='disabled' ? '⊘ deshabilitada' : '● activa'}}</div>
+        </div>
+        <div class="font-mono" style="font-size:10px;color:var(--tx-2)">{{p.srcAddr}}<div style="font-size:9px;color:var(--tx-4)">[{{p.srcZone}}]</div></div>
+        <div class="font-mono" style="font-size:10px;color:var(--tx-2)">{{p.dstAddr}}<div style="font-size:9px;color:var(--tx-4)">[{{p.dstZone}}]</div></div>
+        <div class="font-mono" style="font-size:10px;color:var(--tx-3)">{{p.service}}</div>
+        <div><span [class]="p.action==='ALLOW' ? 'badge-allow' : 'badge-deny'">{{p.action}}</span></div>
+        <div style="font-size:10px" [style.color]="p.ipsProfile!=='—' ? 'var(--ac-amber)' : 'var(--tx-4)'">{{p.ipsProfile}}</div>
+        <div>
+          <span *ngIf="p.logTraffic"  class="badge-log">ON</span>
+          <span *ngIf="!p.logTraffic" style="font-size:10px;color:var(--tx-4)">—</span>
+        </div>
+        <div class="font-mono font-semibold" style="font-size:11px;color:var(--tx-2)">{{fmt(p.hits)}}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Policy detail -->
+  <div *ngIf="selected" class="animate-slide-right">
+    <div class="flex items-center gap-3 mb-5 flex-wrap">
+      <button class="btn-ghost" (click)="selected=null">← Políticas</button>
+      <div class="flex-1">
+        <div class="font-orbitron font-bold" style="font-size:18px;letter-spacing:.06em;color:var(--tx-1)">{{selected.name}}</div>
+        <div class="font-mono" style="font-size:10px;color:var(--tx-4);margin-top:2px">{{selected.id}} · FortiGate 200F · {{selected.schedule}}</div>
+      </div>
+      <span [class]="selected.action==='ALLOW' ? 'badge-allow' : 'badge-deny'" style="font-size:13px;padding:4px 18px">{{selected.action}}</span>
+      <button class="filter-pill" (click)="toggle(selected)"
+        [class.active]="selected.status==='enabled'">
+        {{selected.status==='enabled' ? '⊘ Deshabilitar' : '● Habilitar'}}
+      </button>
+    </div>
+
+    <div class="grid gap-4 mb-4" style="grid-template-columns:1fr 1fr 285px">
+      <div class="card p-5">
+        <div class="section-label">REGLA DE TRÁFICO</div>
+        <div *ngFor="let r of [['Nombre',selected.name],['ID',selected.id],['Estado',selected.status.toUpperCase()],['Acción',selected.action],['Horario',selected.schedule],['NAT',selected.nat?'Habilitado':'Deshabilitado'],['Log',selected.logTraffic?'Habilitado':'Deshabilitado']]"
+          class="info-row"><span class="info-label">{{r[0]}}</span><span class="info-val">{{r[1]}}</span></div>
+      </div>
+      <div class="card p-5">
+        <div class="section-label">FLUJO DE RED</div>
+        <div *ngFor="let r of [['Zona Origen',selected.srcZone],['Dir. Origen',selected.srcAddr],['Zona Destino',selected.dstZone],['Dir. Destino',selected.dstAddr],['Servicio',selected.service]]"
+          class="info-row"><span class="info-label">{{r[0]}}</span><span class="info-val">{{r[1]}}</span></div>
+        <div class="flex items-center justify-between rounded-xl mt-3 px-4 py-3"
+          style="background:var(--bg-sunken);border:1px solid var(--br)">
+          <div class="text-center">
+            <div class="section-label" style="margin-bottom:2px">{{selected.srcZone}}</div>
+            <div class="font-mono font-bold" style="font-size:11px;color:var(--ac-blue)">{{selected.srcAddr}}</div>
+          </div>
+          <div style="font-size:22px;font-weight:900"
+            [style.color]="selected.action==='ALLOW' ? 'var(--ac-green)' : 'var(--ac-red)'">→</div>
+          <div class="text-center">
+            <div class="section-label" style="margin-bottom:2px">{{selected.dstZone}}</div>
+            <div class="font-mono font-bold" style="font-size:11px;color:var(--ac-blue)">{{selected.dstAddr}}</div>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-col gap-3">
+        <div class="card p-4">
+          <div class="section-label">PERFILES</div>
+          <div *ngFor="let pr of [['IPS',selected.ipsProfile,'var(--ac-amber)'],['Antivirus',selected.avProfile,'var(--ac-blue)'],['App Control',selected.appCtrl,'var(--ac-purple)']]"
+            class="info-row"><span class="info-label">{{pr[0]}}</span>
+            <span class="info-val" style="font-size:11px" [style.color]="pr[1]!=='—' ? pr[2] : 'var(--tx-4)'">{{pr[1]}}</span></div>
+        </div>
+        <div class="card p-4">
+          <div class="section-label">ESTADÍSTICAS</div>
+          <div class="font-orbitron font-black" style="font-size:28px;color:var(--ac-amber);line-height:1">{{fmt(selected.hits)}}</div>
+          <div style="font-size:9.5px;color:var(--tx-4);margin-top:3px;letter-spacing:.08em">TOTAL HITS</div>
+          <div style="font-size:10px;color:var(--tx-4);margin-top:10px">Último hit</div>
+          <div class="font-mono" style="font-size:11px;color:var(--tx-2)">{{fmtDate(selected.lastHit)}}</div>
+        </div>
+        <ng-container *ngIf="linkedServer(selected.linkedServer) as lnk">
+          <div class="card p-4" style="border-color:var(--tint-blue-br)">
+            <div class="section-label">SERVIDOR VINCULADO</div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="dot animate-pulse-dot" [class.dot-green]="lnk.status==='active'" [class.dot-red]="lnk.status!=='active'"></span>
+              <span class="font-rajdhani font-bold" style="font-size:13px;color:var(--ac-blue)">{{lnk.hostname}}</span>
+            </div>
+            <div class="font-mono" style="font-size:11px;color:var(--tx-3)">{{lnk.ip}}</div>
+            <a [routerLink]="['/servers', lnk.id]" class="btn-ghost"
+              style="font-size:11px;text-decoration:none;display:block;text-align:center;padding:7px 14px;margin-top:10px">
+              Ver servidor →</a>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+    <div class="card p-5">
+      <div class="section-label">DESCRIPCIÓN / COMENTARIOS</div>
+      <div style="font-size:13px;color:var(--tx-2);line-height:1.75">{{selected.comments || 'Sin comentarios.'}}</div>
+    </div>
+  </div>
+</div>

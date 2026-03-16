@@ -1,0 +1,90 @@
+<div class="animate-fade-up">
+  <!-- Toolbar -->
+  <div class="flex gap-2 items-center mb-4 flex-wrap">
+    <input [(ngModel)]="search" placeholder="Buscar hostname, IP, MAC, solicitante..."
+      class="input-field" style="max-width:300px"/>
+    <div class="flex gap-1">
+      <button *ngFor="let f of [{v:'all',l:'Todos'},{v:'active',l:'Activos'},{v:'inactive',l:'Inactivos'}]"
+        class="filter-pill" [class.active]="filterStatus===f.v" (click)="filterStatus=f.v">
+        {{f.l}} <span style="opacity:.65">({{count(f.v)}})</span>
+      </button>
+    </div>
+    <button class="btn-primary ml-auto" (click)="showNewModal=true">+ Registrar Servidor</button>
+  </div>
+
+  <!-- Table -->
+  <div class="card overflow-hidden">
+    <div class="th-row grid" style="grid-template-columns:80px 1fr 118px 148px 118px 1fr 106px 138px">
+      <div>ID</div><div>HOSTNAME</div><div>IP</div><div>MAC</div>
+      <div>UBICACIÓN</div><div>SOLICITANTE</div><div>ESTADO</div><div>ACCIONES</div>
+    </div>
+
+    <div *ngIf="filtered.length===0" class="py-12 text-center" style="color:var(--tx-4);font-size:13px">
+      Sin resultados para esta búsqueda
+    </div>
+
+    <div *ngFor="let s of filtered; let i=index"
+      class="td-row grid items-center"
+      style="grid-template-columns:80px 1fr 118px 148px 118px 1fr 106px 138px"
+      [style.background]="i%2!==0 ? 'var(--bg-row-alt)' : ''">
+
+      <div class="font-mono font-bold" style="font-size:10px;color:var(--ac-blue);cursor:pointer"
+        (click)="openDetail(s)">{{s.id}}</div>
+
+      <div style="cursor:pointer" (click)="openDetail(s)">
+        <div class="font-rajdhani font-bold" style="font-size:13px;color:var(--tx-1)">{{s.hostname}}</div>
+        <div class="font-mono" style="font-size:9px;color:var(--tx-4)">{{s.os.split(' ').slice(0,2).join(' ')}}</div>
+      </div>
+
+      <div class="font-mono" style="font-size:11px;color:var(--tx-2);cursor:pointer" (click)="openDetail(s)">{{s.ip}}</div>
+      <div class="font-mono" style="font-size:10px;color:var(--tx-3);cursor:pointer" (click)="openDetail(s)">{{s.mac}}</div>
+      <div style="font-size:11px;color:var(--tx-3);cursor:pointer" (click)="openDetail(s)">{{s.location}}</div>
+
+      <div style="cursor:pointer" (click)="openDetail(s)">
+        <div class="font-rajdhani font-semibold" style="font-size:12px;color:var(--tx-2)">{{s.requestedBy}}</div>
+        <div style="font-size:10px;color:var(--tx-4)">{{s.department}}</div>
+      </div>
+
+      <div style="cursor:pointer" (click)="openDetail(s)">
+        <div class="flex items-center gap-1.5">
+          <span class="dot animate-pulse-dot"
+            [class.dot-green]="s.status==='active'" [class.dot-red]="s.status==='critical'||s.status==='inactive'" [style.background]="s.status==='maintenance'?'var(--ac-amber)':''"></span>
+          <span class="font-rajdhani font-bold" style="font-size:10px;letter-spacing:.07em"
+            [style.color]="s.status==='active' ? 'var(--ac-green)' : 'var(--ac-red)'">
+            {{s.status==='active' ? 'ACTIVO' : 'INACTIVO'}}
+          </span>
+        </div>
+        <div *ngIf="s.status==='active'" class="font-mono" style="font-size:9px;color:var(--tx-4);margin-top:2px">
+          {{s.cpu}}% · {{s.ram}}%
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex gap-1.5" (click)="$event.stopPropagation()">
+        <button class="btn-icon btn-icon-amber" (click)="editTarget=s" title="Editar">✏️</button>
+        <button *ngIf="s.status==='active'"  class="btn-icon btn-icon-red"   (click)="shutdownTarget=s" title="Apagar">⏻</button>
+        <button *ngIf="s.status!=='active'" class="btn-icon btn-icon-green" (click)="activate(s)"      title="Reactivar">▶</button>
+        <button class="btn-icon btn-icon-ghost" (click)="deleteTarget=s" title="Eliminar">✕</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<app-new-server-modal  *ngIf="showNewModal"  (close)="showNewModal=false"  (create)="onNewServer($event)"></app-new-server-modal>
+<app-edit-server-modal *ngIf="editTarget"    [server]="editTarget" (close)="editTarget=null"  (save)="onEditServer($event)"></app-edit-server-modal>
+<app-shutdown-modal    *ngIf="shutdownTarget" [server]="shutdownTarget" (close)="shutdownTarget=null" (shutdown)="onShutdown($event)"></app-shutdown-modal>
+
+<!-- Delete confirm -->
+<div *ngIf="deleteTarget" class="modal-overlay">
+  <div class="modal-panel p-7" style="width:430px">
+    <div class="font-orbitron font-bold mb-2" style="font-size:15px;color:var(--ac-red);letter-spacing:.07em">¿Eliminar servidor?</div>
+    <p style="font-size:13px;color:var(--tx-3);line-height:1.7;margin-bottom:20px">
+      <strong style="color:var(--tx-1)">{{deleteTarget.hostname}}</strong> ({{deleteTarget.id}}) será eliminado permanentemente.
+    </p>
+    <div class="flex gap-2 justify-end">
+      <button class="btn-ghost" (click)="deleteTarget=null">Cancelar</button>
+      <button class="btn-danger" (click)="confirmDelete()">Eliminar Permanentemente</button>
+    </div>
+  </div>
+</div>
