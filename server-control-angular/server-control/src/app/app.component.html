@@ -1,0 +1,19 @@
+<!-- Scanlines overlay — dark only -->
+<div class="scanlines fixed inset-0 pointer-events-none z-50" style="opacity:.4"></div>
+<div class="scan-line fixed w-full pointer-events-none z-50 animate-scan"
+  style="height:1px;background:linear-gradient(90deg,transparent,var(--ac-blue),transparent);opacity:.12;top:0"></div>
+
+<app-header></app-header>
+<main>
+  <router-outlet></router-outlet>
+</main>
+
+<!-- Toast notification -->
+<div *ngIf="toast" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 rounded-xl px-4 py-3 animate-toast"
+  style="background:var(--bg-modal);border:1px solid var(--br-strong);box-shadow:var(--shadow-modal)">
+  <span class="font-bold" style="font-size:14px"
+    [style.color]="toast.type==='error'?'var(--ac-red)':toast.type==='warn'?'var(--ac-amber)':'var(--ac-green)'">
+    {{toast.type==='error'?'✕':toast.type==='warn'?'⚠':'✓'}}
+  </span>
+  <span class="font-rajdhani font-semibold" style="font-size:13px;color:var(--tx-2)">{{toast.message}}</span>
+</div>

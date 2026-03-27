@@ -1,0 +1,148 @@
+<div class="animate-fade-up">
+
+  <!-- New ticket modal -->
+  <div class="modal-overlay" *ngIf="showNew">
+    <div class="modal-box" style="width:580px">
+      <div class="flex justify-between items-center mb-4">
+        <span class="font-orbitron font-black" style="font-size:14px;letter-spacing:.08em;color:var(--tx-1)">NUEVO TICKET</span>
+        <button (click)="showNew=false" style="background:none;border:none;color:var(--tx-3);cursor:pointer;font-size:20px">×</button>
+      </div>
+      <div class="flex flex-col gap-3">
+        <div>
+          <label class="form-label">TÍTULO *</label>
+          <input class="input-field" placeholder="Descripción breve del problema" [(ngModel)]="newTicket.title"/>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="form-label">SERVIDOR *</label>
+            <select class="select-field" [(ngModel)]="newTicket.serverId" (change)="selectServer()">
+              <option value="">Seleccionar servidor...</option>
+              <option *ngFor="let s of servers" [value]="s.id">{{s.ip}} — {{s.aloja.split(';')[0].trim().slice(0,30)}}</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">PRIORIDAD</label>
+            <select class="select-field" [(ngModel)]="newTicket.priority">
+              <option value="critical">Crítica</option>
+              <option value="high">Alta</option>
+              <option value="medium">Media</option>
+              <option value="low">Baja</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">CATEGORÍA</label>
+            <select class="select-field" [(ngModel)]="newTicket.category">
+              <option *ngFor="let c of categories">{{c}}</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">ASIGNADO A</label>
+            <select class="select-field" [(ngModel)]="newTicket.assignedTo">
+              <option *ngFor="let u of users">{{u}}</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="form-label">DESCRIPCIÓN</label>
+          <textarea class="input-field" rows="3" [(ngModel)]="newTicket.description" placeholder="Detalle del problema..."></textarea>
+        </div>
+        <div class="flex justify-end gap-2 mt-2">
+          <button class="btn btn-ghost" (click)="showNew=false">Cancelar</button>
+          <button class="btn btn-primary" [disabled]="!newTicket.title||!newTicket.serverId" (click)="createTicket()">Crear Ticket</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- List view -->
+  <ng-container *ngIf="!selected">
+    <div class="flex flex-wrap gap-2 items-center mb-4">
+      <button *ngFor="let f of [{v:'all',l:'Todos'},{v:'open',l:'Abiertos'},{v:'in-progress',l:'En progreso'},{v:'resolved',l:'Resueltos'},{v:'closed',l:'Cerrados'}]"
+        class="filter-pill" [class.active]="filterStatus===f.v" (click)="filterStatus=f.v">{{f.l}}</button>
+      <button class="btn btn-primary ml-auto" (click)="showNew=true">+ Nuevo ticket</button>
+    </div>
+    <div class="flex flex-col gap-2">
+      <div *ngFor="let t of filtered" class="card p-4 cursor-pointer"
+        style="transition:border-color .15s"
+        (mouseenter)="$event.target['style']?.setProperty('border-color','rgba(96,165,250,.3)')"
+        (mouseleave)="$event.target['style']?.setProperty('border-color','rgba(255,255,255,.08)')"
+        (click)="selected=t">
+        <div class="flex items-start gap-3">
+          <span class="badge" [class]="'badge-'+prioColor(t.priority)">{{t.priority.toUpperCase()}}</span>
+          <div style="flex:1;min-width:0">
+            <div class="font-rajdhani font-bold" style="font-size:15px;color:var(--tx-1)">{{t.title}}</div>
+            <div style="font-size:12px;color:var(--tx-3);margin-top:2px">
+              {{t.serverIp}} · {{t.category}} · Asignado: {{t.assignedTo}}
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <span class="badge" [class]="'badge-'+statusColor(t.status)">{{statusLabel(t.status)}}</span>
+            <div class="font-mono" style="font-size:10px;color:var(--tx-4);margin-top:4px">{{fmtDate(t.updatedAt)}}</div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="filtered.length===0" style="padding:40px;text-align:center;color:var(--tx-3);font-family:'Rajdhani',sans-serif;font-size:14px">
+        No hay tickets con ese filtro
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Detail view -->
+  <ng-container *ngIf="selected">
+    <div class="flex items-center gap-3 mb-4 flex-wrap">
+      <button class="btn btn-ghost" (click)="selected=null">← Tickets</button>
+      <div style="flex:1">
+        <div class="font-rajdhani font-bold" style="font-size:18px;color:var(--tx-1)">{{selected.title}}</div>
+        <div class="font-mono" style="font-size:11px;color:var(--tx-3);margin-top:2px">{{selected.id}} · {{selected.serverIp}} · {{selected.category}}</div>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <button *ngIf="selected.status!=='in-progress'" class="btn btn-amber" (click)="updateStatus(selected.id,'in-progress')">▶ En progreso</button>
+        <button *ngIf="selected.status!=='resolved'" class="btn btn-success" (click)="updateStatus(selected.id,'resolved')">✓ Resolver</button>
+        <button *ngIf="selected.status!=='closed'" class="btn btn-ghost" (click)="updateStatus(selected.id,'closed')">⊘ Cerrar</button>
+        <button *ngIf="selected.status==='resolved'||selected.status==='closed'" class="btn btn-danger" (click)="updateStatus(selected.id,'open')">↩ Reabrir</button>
+      </div>
+    </div>
+    <div class="grid gap-4" style="grid-template-columns:1fr 280px">
+      <div>
+        <div class="card p-4 mb-4">
+          <div class="section-label">DESCRIPCIÓN</div>
+          <p style="font-size:14px;color:var(--tx-2);line-height:1.7">{{selected.description || 'Sin descripción.'}}</p>
+        </div>
+        <div class="card p-4">
+          <div class="section-label">COMENTARIOS ({{selectedCommentsCount}})</div>
+          <div *ngFor="let c of selectedComments"
+            style="padding:10px 0;border-bottom:1px solid var(--br-section)">
+            <div class="flex gap-2 items-center mb-1">
+              <div class="w-6 h-6 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0"
+                style="background:linear-gradient(135deg,#4f6ef7,#2040c8);font-size:10px">{{c.user.charAt(0)}}</div>
+              <span class="font-rajdhani font-bold" style="font-size:13px;color:var(--tx-1)">{{c.user}}</span>
+              <span class="font-mono" style="font-size:10px;color:var(--tx-4)">{{fmtDate(c.time)}}</span>
+            </div>
+            <div style="font-size:13px;color:var(--tx-2);padding-left:28px">{{c.text}}</div>
+          </div>
+          <div class="flex gap-2 mt-3">
+            <input class="input-field" placeholder="Agregar comentario..." [(ngModel)]="comment" (keydown.enter)="addComment()"/>
+            <button class="btn btn-primary" style="flex-shrink:0" (click)="addComment()">Enviar</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card p-4">
+          <div class="section-label">DETALLES</div>
+          <div class="info-row" *ngFor="let r of [
+            ['Estado', statusLabel(selected.status)],
+            ['Prioridad', selected.priority],
+            ['Categoría', selected.category],
+            ['Servidor IP', selected.serverIp],
+            ['Asignado a', selected.assignedTo],
+            ['Creado', fmtDate(selected.createdAt)],
+            ['Actualizado', fmtDate(selected.updatedAt)]
+          ]">
+            <span class="info-label">{{r[0]}}</span>
+            <span class="info-val">{{r[1]}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

@@ -1,0 +1,370 @@
+<div class="animate-fade-up">
+
+  <!-- KPI row — 8 cards -->
+  <div class="grid gap-3 mb-5" style="grid-template-columns:repeat(8,1fr)">
+    <div class="kpi-card" style="padding:14px 16px">
+      <div class="section-label" style="color:var(--ac-green);margin-bottom:5px">EN LÍNEA</div>
+      <div class="font-orbitron font-black" style="font-size:28px;color:var(--ac-green);line-height:1">{{active.length}}</div>
+      <div class="dot dot-green animate-pulse-dot" style="margin-top:8px"></div>
+    </div>
+    <div class="kpi-card" style="padding:14px 16px" [style.border-color]="critical.length?'var(--tint-red-br)':''">
+      <div class="section-label" [style.color]="critical.length?'var(--ac-red)':'var(--tx-3)'" style="margin-bottom:5px">CRÍTICOS</div>
+      <div class="font-orbitron font-black" style="font-size:28px;line-height:1" [style.color]="critical.length?'var(--ac-red)':'var(--tx-4)'">{{critical.length}}</div>
+      <div class="dot animate-pulse-dot" style="margin-top:8px" [class.dot-red]="critical.length>0" [style.background]="critical.length?'':'var(--tx-4)'"></div>
+    </div>
+    <div class="kpi-card" style="padding:14px 16px">
+      <div class="section-label" style="color:var(--ac-amber);margin-bottom:5px">MANT.</div>
+      <div class="font-orbitron font-black" style="font-size:28px;color:var(--ac-amber);line-height:1">{{inactive.length}}</div>
+      <div style="font-size:13px;margin-top:6px">🔧</div>
+    </div>
+    <div class="kpi-card" style="padding:14px 16px">
+      <div class="section-label" style="color:var(--ac-blue);margin-bottom:5px">TOTAL</div>
+      <div class="font-orbitron font-black" style="font-size:28px;color:var(--ac-blue);line-height:1">{{servers.length}}</div>
+      <div style="font-size:13px;margin-top:6px;color:var(--tx-4)">⬡</div>
+    </div>
+    <div class="kpi-card" style="padding:14px 16px">
+      <div class="section-label" style="color:var(--tx-3);margin-bottom:5px">CPU PROM.</div>
+      <div class="font-orbitron font-black" style="font-size:28px;line-height:1"
+        [style.color]="avgCpu>80?'var(--ac-red)':avgCpu>60?'var(--ac-amber)':'var(--ac-blue)'">{{avgCpu}}%</div>
+      <div class="mbar" style="margin-top:8px"><div class="mbar-fill" [style.width]="avgCpu+'%'"
+        [style.background]="avgCpu>80?'var(--ac-red)':avgCpu>60?'var(--ac-amber)':'var(--ac-blue)'"></div></div>
+    </div>
+    <div class="kpi-card" style="padding:14px 16px">
+      <div class="section-label" style="color:var(--tx-3);margin-bottom:5px">RAM PROM.</div>
+      <div class="font-orbitron font-black" style="font-size:28px;line-height:1"
+        [style.color]="avgRam>80?'var(--ac-red)':avgRam>60?'var(--ac-amber)':'var(--ac-purple)'">{{avgRam}}%</div>
+      <div class="mbar" style="margin-top:8px"><div class="mbar-fill" [style.width]="avgRam+'%'"
+        [style.background]="avgRam>80?'var(--ac-red)':avgRam>60?'var(--ac-amber)':'var(--ac-purple)'"></div></div>
+    </div>
+    <div class="kpi-card" style="padding:14px 16px" [style.border-color]="openIncidents?'var(--tint-amber-br)':''">
+      <div class="section-label" style="color:var(--ac-amber);margin-bottom:5px">INCIDENTES</div>
+      <div class="font-orbitron font-black" style="font-size:28px;line-height:1"
+        [style.color]="openIncidents?'var(--ac-amber)':'var(--tx-4)'">{{openIncidents}}</div>
+      <div style="font-size:13px;margin-top:6px">🚨</div>
+    </div>
+    <div class="kpi-card" style="padding:14px 16px" [style.border-color]="activeAlerts.length?'var(--tint-red-br)':''">
+      <div class="section-label" [style.color]="activeAlerts.length?'var(--ac-red)':'var(--tx-3)'" style="margin-bottom:5px">ALERTAS</div>
+      <div class="font-orbitron font-black" style="font-size:28px;line-height:1"
+        [style.color]="activeAlerts.length?'var(--ac-red)':'var(--tx-4)'">{{activeAlerts.length}}</div>
+      <div style="font-size:13px;margin-top:6px" [style.color]="activeAlerts.length?'var(--ac-red)':'var(--tx-4)'">{{activeAlerts.length?'⚠':'✓'}}</div>
+    </div>
+  </div>
+
+  <!-- Critical alerts banner -->
+  <div *ngIf="criticalAlerts.length > 0" class="rounded-xl p-3 mb-4 flex items-center gap-3 flex-wrap"
+    style="background:var(--tint-red-bg);border:1px solid var(--tint-red-br)">
+    <span style="font-size:16px">🔴</span>
+    <span class="font-rajdhani font-black" style="font-size:13px;color:var(--ac-red);letter-spacing:.06em">
+      {{criticalAlerts.length}} ALERTA{{criticalAlerts.length>1?'S':''}} CRÍTICA{{criticalAlerts.length>1?'S':''}}
+    </span>
+    <span *ngFor="let a of criticalAlerts.slice(0,3)" class="font-mono rounded px-2 py-0.5"
+      style="font-size:10px;color:var(--ac-red);background:rgba(248,113,113,.1);border:1px solid var(--tint-red-br)">
+      {{a.serverName}} · {{a.metric.toUpperCase()}} {{a.value}}%
+    </span>
+    <button class="btn-ghost ml-auto" style="font-size:11px;padding:5px 12px" (click)="router.navigate(['/alerts'])">Ver alertas →</button>
+  </div>
+
+  <!-- Main grid -->
+  <div class="grid gap-4" style="grid-template-columns:1fr 360px">
+
+    <!-- Server cards -->
+    <div>
+      <div class="flex items-center justify-between mb-3">
+        <div class="section-label" style="margin-bottom:0">INVENTARIO · TIEMPO REAL</div>
+        <button class="btn-ghost" style="font-size:11px;padding:5px 12px" (click)="router.navigate(['/servers'])">Ver todos →</button>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div *ngFor="let s of servers" class="server-card card p-4" (click)="goToServer(s)"
+          [style.border-left]="s.status==='critical'?'3px solid var(--ac-red)':s.status==='maintenance'?'3px solid var(--ac-amber)':''">
+
+          <div class="flex gap-3 mb-3 items-start">
+            <!-- Chassis icon -->
+            <div class="rounded-lg flex-shrink-0" style="padding:6px;background:var(--bg-sunken);border:1px solid var(--br)">
+              <svg width="32" height="24" viewBox="0 0 32 24">
+                <rect x=".5" y=".5" width="31" height="23" rx="2" fill="var(--bg-overlay)" stroke="var(--br-strong)" stroke-width=".8"/>
+                <rect x="2" y="2"  width="22" height="4" rx="1" fill="var(--br-strong)"/>
+                <rect x="2" y="8"  width="22" height="4" rx="1" fill="var(--br-strong)"/>
+                <rect x="2" y="14" width="22" height="4" rx="1" fill="var(--br-strong)"/>
+                <circle cx="29" cy="4"  r="1.8" [attr.fill]="nodeColor(s)" class="animate-pulse-dot"/>
+                <circle cx="29" cy="10" r="1.8" fill="var(--br-strong)"/>
+                <circle cx="29" cy="16" r="1.8" fill="var(--br-strong)"/>
+              </svg>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div class="font-rajdhani font-bold truncate" style="font-size:14px;color:var(--tx-1)">{{s.hostname}}</div>
+              <div class="font-mono" style="font-size:10px;color:var(--tx-4);margin-top:1px">{{s.ip}} · {{s.location}}</div>
+              <div class="flex items-center gap-2 mt-1.5">
+                <span class="dot animate-pulse-dot" [class]="statusDotClass(s.status)"
+                  [style.background]="s.status==='maintenance'?'var(--ac-amber)':''"></span>
+                <span class="font-rajdhani font-black" style="font-size:10px;letter-spacing:.08em" [style.color]="statusColor(s.status)">
+                  {{statusLabel(s.status)}}
+                </span>
+                <span *ngIf="s.tags?.length" class="font-mono rounded px-1.5"
+                  style="font-size:8.5px;color:var(--tx-4);background:var(--bg-sunken);border:1px solid var(--br)">
+                  {{s.tags[0]}}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active metrics -->
+          <div *ngIf="s.status==='active'||s.status==='critical'" class="grid grid-cols-4 gap-1.5">
+            <div *ngFor="let m of [
+              {l:'CPU', v:s.cpu,  c:s.cpu>80?'var(--ac-red)':s.cpu>60?'var(--ac-amber)':'var(--ac-blue)'},
+              {l:'RAM', v:s.ram,  c:s.ram>80?'var(--ac-red)':s.ram>60?'var(--ac-amber)':'var(--ac-purple)'},
+              {l:'DSK', v:s.disk, c:s.disk>85?'var(--ac-red)':s.disk>65?'var(--ac-amber)':'var(--ac-green)'},
+              {l:'°C',  v:s.temp, c:s.temp>70?'var(--ac-red)':'var(--ac-green)'}]"
+              class="rounded text-center py-1" style="background:var(--bg-sunken);border:1px solid var(--br-section)">
+              <div class="font-mono font-bold" style="font-size:11px" [style.color]="m.c">{{m.v}}{{m.l!=='°C'?'%':'°'}}</div>
+              <div style="font-size:8px;color:var(--tx-4);letter-spacing:.05em">{{m.l}}</div>
+            </div>
+          </div>
+
+          <!-- Inactive -->
+          <div *ngIf="s.status==='inactive'||s.status==='maintenance'" class="rounded-lg px-3 py-2"
+            style="background:var(--bg-sunken);border:1px solid var(--br);font-size:11px;color:var(--tx-3)">
+            {{s.shutdownReason || 'Sin actividad'}}
+          </div>
+
+          <!-- Footer -->
+          <div class="flex justify-between mt-2.5 pt-2.5" style="border-top:1px solid var(--br-section)">
+            <span style="font-size:9px;color:var(--tx-4)">{{s.environment}}</span>
+            <span class="font-mono" style="font-size:9px;color:var(--tx-4)">{{s.uptime}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div class="flex flex-col gap-4">
+
+      <!-- Open incidents -->
+      <div class="card p-4" *ngIf="openIncidents > 0">
+        <div class="flex items-center justify-between mb-3">
+          <div class="section-label" style="margin-bottom:0;color:var(--ac-amber)">INCIDENTES ABIERTOS</div>
+          <button class="btn-ghost" style="font-size:10px;padding:4px 10px" (click)="router.navigate(['/incidents'])">Ver todos</button>
+        </div>
+        <div class="flex flex-col gap-2">
+          <div *ngFor="let inc of incSvc.getOpen().slice(0,3)"
+            class="flex items-center gap-2 rounded-lg p-2.5 cursor-pointer"
+            style="background:var(--bg-sunken);border:1px solid var(--br);transition:all .15s"
+            (click)="router.navigate(['/incidents'])">
+            <div class="dot flex-shrink-0" style="width:6px;height:6px"
+              [style.background]="inc.priority==='critical'?'var(--ac-red)':inc.priority==='high'?'var(--ac-orange)':'var(--ac-amber)'"></div>
+            <div style="flex:1;min-width:0">
+              <div class="truncate font-rajdhani font-semibold" style="font-size:12px;color:var(--tx-1)">{{inc.title}}</div>
+              <div style="font-size:10px;color:var(--tx-4)">{{inc.serverName}} · {{inc.assignedTo}}</div>
+            </div>
+            <span class="font-mono" style="font-size:9px;color:var(--tx-4)">→</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Network topology — CLICKABLE to expand -->
+      <div class="card p-4 topo-mini-card" style="cursor:pointer;transition:border-color .18s"
+        (click)="topoExpanded=true" title="Click para expandir">
+        <div class="flex items-center justify-between mb-1">
+          <div class="section-label" style="margin-bottom:0">TOPOLOGÍA DE RED</div>
+          <span style="font-size:10px;color:var(--tx-4);font-family:'Rajdhani',sans-serif;letter-spacing:.08em">⤢ EXPANDIR</span>
+        </div>
+        <svg width="100%" viewBox="0 0 320 215">
+          <defs>
+            <radialGradient id="cg"><stop offset="0%" stop-color="var(--ac-blue)" stop-opacity=".5"/><stop offset="100%" stop-color="var(--ac-blue)" stop-opacity="0"/></radialGradient>
+            <filter id="gl"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <!-- FortiGate core -->
+          <circle cx="160" cy="107" r="22" fill="url(#cg)" stroke="var(--ac-blue)" stroke-opacity=".55" stroke-width="1.5" filter="url(#gl)"/>
+          <circle cx="160" cy="107" r="34" fill="none" stroke="var(--ac-blue)" stroke-opacity=".06" stroke-width="12" class="animate-pulse-dot"/>
+          <text x="160" y="103" text-anchor="middle" fill="var(--ac-blue)" font-size="7" font-family="Share Tech Mono,monospace" font-weight="700">FORTI</text>
+          <text x="160" y="114" text-anchor="middle" fill="var(--ac-blue)" font-size="6" font-family="Share Tech Mono,monospace" opacity=".75">200F</text>
+
+          <g *ngFor="let s of servers; let i=index">
+            <line [attr.x1]="160" [attr.y1]="107" [attr.x2]="nodeX(i)" [attr.y2]="nodeY(i)"
+              [attr.stroke]="nodeColor(s)" stroke-opacity=".2" stroke-width="1.2"
+              [attr.stroke-dasharray]="s.status==='inactive'?'4,5':s.status==='maintenance'?'3,3':'none'"/>
+            <circle [attr.cx]="nodeX(i)" [attr.cy]="nodeY(i)" r="13"
+              [attr.fill]="nodeStroke(s)" [attr.stroke]="nodeColor(s)"
+              stroke-width="1.2" filter="url(#gl)"/>
+            <text [attr.x]="nodeX(i)" [attr.y]="nodeY(i)+4" text-anchor="middle"
+              [attr.fill]="nodeColor(s)" font-size="6.5" font-family="Share Tech Mono,monospace">
+              {{s.id.replace('SRV-','')}}
+            </text>
+            <text [attr.x]="nodeX(i)" [attr.y]="nodeY(i)+23" text-anchor="middle"
+              fill="var(--tx-3)" font-size="6" font-family="Share Tech Mono,monospace">
+              {{s.hostname.length>13?s.hostname.slice(0,13)+'…':s.hostname}}
+            </text>
+          </g>
+        </svg>
+        <!-- Legend -->
+        <div class="flex gap-3 justify-center flex-wrap" style="margin-top:4px">
+          <span style="font-size:9.5px;color:var(--tx-3)"><span style="color:var(--ac-green)">●</span> Activo ({{active.length}})</span>
+          <span style="font-size:9.5px;color:var(--tx-3)"><span style="color:var(--ac-red)">●</span> Crítico ({{critical.length}})</span>
+          <span style="font-size:9.5px;color:var(--tx-3)"><span style="color:var(--ac-amber)">●</span> Mant. ({{inactive.length}})</span>
+        </div>
+      </div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TOPOLOGY FULLSCREEN MODAL
+     ═══════════════════════════════════════════════════════ -->
+<div *ngIf="topoExpanded"
+  class="fixed inset-0 z-50 flex items-center justify-center"
+  style="background:rgba(0,0,0,.75);backdrop-filter:blur(6px)"
+  (click)="topoExpanded=false">
+
+  <div class="rounded-2xl flex flex-col animate-fade-up"
+    style="width:min(94vw,960px);max-height:90vh;background:var(--bg-raised);border:1px solid var(--br-strong);box-shadow:0 24px 80px rgba(0,0,0,.7);overflow:hidden"
+    (click)="$event.stopPropagation()">
+
+    <!-- Modal header -->
+    <div class="flex items-center justify-between flex-shrink-0"
+      style="padding:16px 22px;border-bottom:1px solid var(--br)">
+      <div>
+        <div class="font-orbitron font-black" style="font-size:16px;color:var(--tx-1);letter-spacing:.08em">TOPOLOGÍA DE RED</div>
+        <div class="font-mono" style="font-size:9px;color:var(--tx-4);margin-top:2px;letter-spacing:.12em">
+          CENTRO DE DATOS · {{servers.length}} NODOS · FortiGate 200F CORE
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <!-- Live stats -->
+        <div class="flex gap-2">
+          <span *ngFor="let s of [
+            {l:'En Línea', v:active.length, c:'var(--ac-green)', bg:'var(--tint-green-bg)', br:'var(--tint-green-br)'},
+            {l:'Crítico',  v:critical.length, c:'var(--ac-red)', bg:'var(--tint-red-bg)', br:'var(--tint-red-br)'},
+            {l:'Mant.',    v:inactive.length, c:'var(--ac-amber)', bg:'var(--tint-amber-bg)', br:'var(--tint-amber-br)'}]"
+            class="rounded-lg px-2.5 py-1"
+            [style.background]="s.bg" [style.border]="'1px solid '+s.br">
+            <span class="font-orbitron font-bold" [style.color]="s.c" style="font-size:13px">{{s.v}}</span>
+            <span style="font-size:9px;color:var(--tx-4);margin-left:4px">{{s.l}}</span>
+          </span>
+        </div>
+        <button (click)="topoExpanded=false"
+          class="rounded-xl flex items-center justify-center font-bold"
+          style="width:34px;height:34px;background:var(--bg-sunken);border:1px solid var(--br);color:var(--tx-3);font-size:15px;cursor:pointer">
+          ✕
+        </button>
+      </div>
+    </div>
+
+    <!-- SVG topology — large version -->
+    <div class="flex-1 flex" style="overflow:hidden;padding:8px">
+      <svg width="100%" viewBox="0 0 800 500" style="display:block">
+        <defs>
+          <radialGradient id="cgL"><stop offset="0%" stop-color="var(--ac-blue)" stop-opacity=".6"/><stop offset="100%" stop-color="var(--ac-blue)" stop-opacity="0"/></radialGradient>
+          <filter id="glL"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="glSm"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <!-- Grid lines -->
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--br)" stroke-opacity=".3" stroke-width=".5"/>
+          </pattern>
+        </defs>
+
+        <!-- Grid background -->
+        <rect width="800" height="500" fill="url(#grid)" rx="12"/>
+
+        <!-- WAN cloud node top -->
+        <ellipse cx="400" cy="42" rx="60" ry="20"
+          fill="var(--bg-overlay)" stroke="var(--br-strong)" stroke-width="1.2" stroke-dasharray="5,4"/>
+        <text x="400" y="39" text-anchor="middle" fill="var(--tx-4)" font-size="10" font-family="Share Tech Mono,monospace">WAN</text>
+        <text x="400" y="52" text-anchor="middle" fill="var(--tx-4)" font-size="7.5" font-family="Share Tech Mono,monospace" opacity=".6">Internet</text>
+        <line x1="400" y1="62" x2="400" y2="128" stroke="var(--ac-blue)" stroke-opacity=".25" stroke-width="1.5" stroke-dasharray="6,4"/>
+
+        <!-- FortiGate core — center -->
+        <circle cx="400" cy="200" r="44" fill="url(#cgL)" stroke="var(--ac-blue)" stroke-opacity=".7" stroke-width="2" filter="url(#glL)"/>
+        <circle cx="400" cy="200" r="58" fill="none" stroke="var(--ac-blue)" stroke-opacity=".06" stroke-width="20" class="animate-pulse-dot"/>
+        <circle cx="400" cy="200" r="28" fill="var(--bg-overlay)" stroke="var(--ac-blue)" stroke-opacity=".4" stroke-width="1.2"/>
+        <text x="400" y="196" text-anchor="middle" fill="var(--ac-blue)" font-size="9.5" font-family="Share Tech Mono,monospace" font-weight="700">FORTIGATE</text>
+        <text x="400" y="210" text-anchor="middle" fill="var(--ac-blue)" font-size="8" font-family="Share Tech Mono,monospace" opacity=".75">200F</text>
+
+        <!-- Server nodes — placed in arc around FortiGate -->
+        <g *ngFor="let s of servers; let i=index">
+          <!-- Connection line -->
+          <line [attr.x1]="400" [attr.y1]="200"
+            [attr.x2]="nodeXL(i)" [attr.y2]="nodeYL(i)"
+            [attr.stroke]="nodeColor(s)" stroke-opacity=".22" stroke-width="1.5"
+            [attr.stroke-dasharray]="s.status==='inactive'?'5,6':s.status==='maintenance'?'3,4':'none'"/>
+          <!-- Outer ring (status aura) -->
+          <circle [attr.cx]="nodeXL(i)" [attr.cy]="nodeYL(i)" r="28"
+            [attr.fill]="nodeStroke(s)" [attr.stroke]="nodeColor(s)"
+            stroke-opacity=".15" stroke-width="10"/>
+          <!-- Node circle -->
+          <circle [attr.cx]="nodeXL(i)" [attr.cy]="nodeYL(i)" r="22"
+            [attr.fill]="nodeStroke(s)" [attr.stroke]="nodeColor(s)"
+            stroke-width="1.8" filter="url(#glSm)"/>
+          <!-- Server ID -->
+          <text [attr.x]="nodeXL(i)" [attr.y]="nodeYL(i)-4" text-anchor="middle"
+            [attr.fill]="nodeColor(s)" font-size="8" font-family="Share Tech Mono,monospace" font-weight="700">
+            {{s.id}}
+          </text>
+          <!-- Hostname (short) -->
+          <text [attr.x]="nodeXL(i)" [attr.y]="nodeYL(i)+6" text-anchor="middle"
+            [attr.fill]="nodeColor(s)" font-size="6.5" font-family="Share Tech Mono,monospace" opacity=".85">
+            {{s.hostname.length>12?s.hostname.slice(0,12)+'…':s.hostname}}
+          </text>
+          <!-- Status label below node -->
+          <text [attr.x]="nodeXL(i)" [attr.y]="nodeYL(i)+34" text-anchor="middle"
+            fill="var(--tx-4)" font-size="7.5" font-family="Share Tech Mono,monospace">
+            {{s.ip}}
+          </text>
+          <!-- CPU badge for active -->
+          <g *ngIf="s.status==='active'||s.status==='critical'">
+            <rect [attr.x]="nodeXL(i)-16" [attr.y]="nodeYL(i)+38" width="32" height="12" rx="4"
+              [attr.fill]="s.cpu>80?'var(--tint-red-bg)':'var(--tint-blue-bg)'"
+              [attr.stroke]="s.cpu>80?'var(--tint-red-br)':'var(--tint-blue-br)'" stroke-width=".8"/>
+            <text [attr.x]="nodeXL(i)" [attr.y]="nodeYL(i)+47" text-anchor="middle"
+              [attr.fill]="s.cpu>80?'var(--ac-red)':'var(--ac-blue)'"
+              font-size="7" font-family="Share Tech Mono,monospace">
+              CPU {{s.cpu}}%
+            </text>
+          </g>
+          <!-- Status text for inactive -->
+          <text *ngIf="s.status==='inactive'||s.status==='maintenance'"
+            [attr.x]="nodeXL(i)" [attr.y]="nodeYL(i)+47" text-anchor="middle"
+            fill="var(--ac-amber)" font-size="7" font-family="Share Tech Mono,monospace">
+            {{statusLabel(s.status)}}
+          </text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Footer stats row -->
+    <div class="flex gap-0 flex-shrink-0" style="border-top:1px solid var(--br)">
+      <div *ngFor="let s of servers"
+        class="flex-1 flex flex-col items-center py-2.5 cursor-pointer"
+        style="border-right:1px solid var(--br);transition:background .15s"
+        (mouseenter)="$event.target['style'].background='var(--bg-sunken)'"
+        (mouseleave)="$event.target['style'].background=''"
+        (click)="topoExpanded=false; goToServer(s)">
+        <div class="font-mono font-bold" style="font-size:9px;letter-spacing:.06em" [style.color]="nodeColor(s)">{{s.id}}</div>
+        <div class="font-rajdhani font-semibold" style="font-size:10px;color:var(--tx-3)" >{{s.hostname.split('-')[0]}}</div>
+        <div *ngIf="s.status==='active'||s.status==='critical'" class="font-mono" style="font-size:8.5px;margin-top:1px"
+          [style.color]="s.cpu>80?'var(--ac-red)':'var(--tx-4)'">{{s.cpu}}%</div>
+        <div *ngIf="s.status!=='active'&&s.status!=='critical'" style="font-size:8px;color:var(--tx-4)">offline</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      <!-- Activity feed -->
+      <div class="card p-4 flex-1">
+        <div class="section-label">ACTIVIDAD RECIENTE</div>
+        <div style="overflow-y:auto;max-height:240px">
+          <div *ngFor="let l of recentLogs" class="flex gap-2.5 py-2" style="border-bottom:1px solid var(--br-section)">
+            <div class="font-mono font-bold flex items-center justify-center rounded-md flex-shrink-0"
+              style="width:20px;height:20px;font-size:9px;margin-top:1px"
+              [style.background]="logBg(l.type)" [style.color]="logColor(l.type)">
+              {{logIcon(l.type)}}
+            </div>
+            <div style="min-width:0;flex:1">
+              <div style="font-size:11.5px;color:var(--tx-2)">
+                <span style="font-weight:700" [style.color]="l.type==='alert'?'var(--ac-amber)':'var(--ac-blue)'">{{l.hostname}}</span>
+                <span style="color:var(--tx-4)"> · </span>
+                <span>{{l.event}}</span>
+              </div>
+              <div class="font-mono" style="font-size:9px;color:var(--tx-4);margin-top:1px">{{formatDate(l.time)}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
