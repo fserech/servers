@@ -2,8 +2,8 @@
   <!-- Toolbar -->
   <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
     <div>
-      <h1 class="font-orbitron font-black" style="font-size:20px;color:var(--tx-1);letter-spacing:.06em">INVENTARIO DE SERVIDORES</h1>
-      <p style="font-size:12px;color:var(--tx-3);margin-top:2px">{{filtered.length}} servidores · {{count('active')}} activos · {{count('inactive')}} fuera de línea</p>
+      <h1 class="font-orbitron font-black" style="font-size:23px;color:var(--tx-1);letter-spacing:.06em">INVENTARIO DE SERVIDORES</h1>
+      <p style="font-size:14px;color:var(--tx-3);margin-top:2px">{{filtered.length}} servidores · {{count('active')}} activos · {{count('inactive')}} fuera de línea</p>
     </div>
     <button class="btn-primary" (click)="showNewModal=true">+ Registrar Servidor</button>
   </div>
@@ -35,7 +35,7 @@
       <div>ACCIONES</div>
     </div>
 
-    <div *ngIf="filtered.length===0" class="py-12 text-center" style="color:var(--tx-4);font-size:13px">
+    <div *ngIf="filtered.length===0" class="py-12 text-center" style="color:var(--tx-4);font-size:15px">
       Sin resultados para esta búsqueda
     </div>
 
@@ -46,23 +46,23 @@
       [style.border-left]="s.status==='critical'?'3px solid var(--ac-red)':s.status==='maintenance'?'3px solid var(--ac-amber)':''">
 
       <!-- ID -->
-      <div class="font-mono font-bold" style="font-size:10px;color:var(--ac-blue);cursor:pointer;padding-top:2px"
+      <div class="font-mono font-bold" style="font-size:11.5px;color:var(--ac-blue);cursor:pointer;padding-top:2px"
         (click)="openDetail(s)">{{s.id}}</div>
 
       <!-- Hostname + apps -->
       <div style="cursor:pointer;min-width:0" (click)="openDetail(s)">
-        <div class="font-rajdhani font-bold" style="font-size:13px;color:var(--tx-1)">{{s.hostname}}</div>
-        <div class="font-mono" style="font-size:9px;color:var(--tx-4);margin-bottom:5px">{{s.os}} · {{s.location}}</div>
+        <div class="font-rajdhani font-bold" style="font-size:15px;color:var(--tx-1)">{{s.hostname}}</div>
+        <div class="font-mono" style="font-size:10.5px;color:var(--tx-4);margin-bottom:5px">{{s.os}} · {{s.location}}</div>
         <!-- Applications list -->
         <div class="flex flex-wrap gap-1">
           <span *ngFor="let app of s.applications?.slice(0,3)"
             class="font-mono rounded px-1.5 py-0.5"
-            style="font-size:8.5px;color:var(--tx-3);background:var(--bg-sunken);border:1px solid var(--br-section)">
+            style="font-size:10px;color:var(--tx-3);background:var(--bg-sunken);border:1px solid var(--br-section)">
             {{app}}
           </span>
           <span *ngIf="s.applications?.length > 3"
             class="font-mono rounded px-1.5 py-0.5"
-            style="font-size:8.5px;color:var(--tx-4);background:var(--bg-sunken);border:1px solid var(--br-section)">
+            style="font-size:10px;color:var(--tx-4);background:var(--bg-sunken);border:1px solid var(--br-section)">
             +{{s.applications.length-3}} más
           </span>
         </div>
@@ -70,19 +70,19 @@
 
       <!-- IP -->
       <div style="cursor:pointer;padding-top:2px" (click)="openDetail(s)">
-        <div class="font-mono font-bold" style="font-size:11px;color:var(--tx-2)">{{s.ip}}</div>
-        <div class="font-mono" style="font-size:9px;color:var(--tx-4);margin-top:2px">{{s.mac}}</div>
+        <div class="font-mono font-bold" style="font-size:12.5px;color:var(--tx-2)">{{s.ip}}</div>
+        <div class="font-mono" style="font-size:10.5px;color:var(--tx-4);margin-top:2px">{{s.mac}}</div>
       </div>
 
       <!-- Tipo -->
       <div style="padding-top:2px">
-        <span class="badge" style="font-size:9px;text-transform:uppercase"
+        <span class="badge" style="font-size:10.5px;text-transform:uppercase"
           [class.badge-blue]="s.type==='web'" [class.badge-purple]="s.type==='database'"
           [class.badge-amber]="s.type==='api'" [class.badge-green]="s.type==='infra'"
           [class.badge-red]="s.type==='security'">
           {{s.type}}
         </span>
-        <div style="font-size:9px;color:var(--tx-4);margin-top:4px;text-transform:capitalize">{{s.environment}}</div>
+        <div style="font-size:10.5px;color:var(--tx-4);margin-top:4px;text-transform:capitalize">{{s.environment}}</div>
       </div>
 
       <!-- Ports -->
@@ -90,14 +90,14 @@
         <div class="flex flex-wrap gap-1">
           <span *ngFor="let port of s.openPorts?.slice(0,5)"
             class="font-mono rounded px-1.5 py-0.5 flex items-center gap-1"
-            style="font-size:8.5px;border:1px solid"
+            style="font-size:10px;border:1px solid"
             [style.color]="port===22?'var(--ac-amber)':port===80?'var(--ac-blue)':port===443?'var(--ac-green)':port===3306||port===5432||port===1521?'var(--ac-purple)':'var(--tx-3)'"
             [style.border-color]="port===22?'var(--tint-amber-br)':port===80?'var(--tint-blue-br)':port===443?'var(--tint-green-br)':port===3306||port===5432||port===1521?'rgba(168,85,247,.2)':'var(--br-section)'"
             [style.background]="port===22?'var(--tint-amber-bg)':port===80?'var(--tint-blue-bg)':port===443?'var(--tint-green-bg)':port===3306||port===5432||port===1521?'rgba(168,85,247,.08)':'var(--bg-sunken)'"
             [title]="s.portLabels?.[port] || 'Puerto '+port">
             {{port}}
           </span>
-          <span *ngIf="s.openPorts?.length > 5" style="font-size:8.5px;color:var(--tx-4);padding-top:2px">
+          <span *ngIf="s.openPorts?.length > 5" style="font-size:10px;color:var(--tx-4);padding-top:2px">
             +{{s.openPorts.length-5}}
           </span>
         </div>
@@ -106,10 +106,10 @@
       <!-- Authorized users -->
       <div style="padding-top:2px">
         <div *ngFor="let u of s.authorizedUsers?.slice(0,3)"
-          style="font-size:10px;color:var(--tx-3);line-height:1.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">
+          style="font-size:11.5px;color:var(--tx-3);line-height:1.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">
           · {{u}}
         </div>
-        <div *ngIf="s.authorizedUsers?.length > 3" style="font-size:9px;color:var(--tx-4)">
+        <div *ngIf="s.authorizedUsers?.length > 3" style="font-size:10.5px;color:var(--tx-4)">
           +{{s.authorizedUsers.length-3}} más
         </div>
       </div>
@@ -121,15 +121,15 @@
             [class.dot-green]="s.status==='active'"
             [class.dot-red]="s.status==='critical'||s.status==='inactive'"
             [style.background]="s.status==='maintenance'?'var(--ac-amber)':''"></span>
-          <span class="font-rajdhani font-black" style="font-size:10px;letter-spacing:.07em"
+          <span class="font-rajdhani font-black" style="font-size:11.5px;letter-spacing:.07em"
             [style.color]="s.status==='active'?'var(--ac-green)':s.status==='critical'?'var(--ac-red)':s.status==='maintenance'?'var(--ac-amber)':'var(--tx-4)'">
             {{s.status==='active'?'ACTIVO':s.status==='critical'?'CRÍTICO':s.status==='maintenance'?'MANT.':'INACTIVO'}}
           </span>
         </div>
-        <div *ngIf="s.status==='active'||s.status==='critical'" class="font-mono" style="font-size:9px;color:var(--tx-4);margin-top:2px">
+        <div *ngIf="s.status==='active'||s.status==='critical'" class="font-mono" style="font-size:10.5px;color:var(--tx-4);margin-top:2px">
           CPU {{s.cpu}}% · RAM {{s.ram}}%
         </div>
-        <div class="font-mono" style="font-size:8.5px;color:var(--tx-4);margin-top:1px">{{s.uptime}}</div>
+        <div class="font-mono" style="font-size:10px;color:var(--tx-4);margin-top:1px">{{s.uptime}}</div>
       </div>
 
       <!-- Actions -->
@@ -151,8 +151,8 @@
 <!-- Delete confirm -->
 <div *ngIf="deleteTarget" class="modal-overlay">
   <div class="modal-panel p-7" style="width:430px">
-    <div class="font-orbitron font-bold mb-2" style="font-size:15px;color:var(--tx-1)">CONFIRMAR ELIMINACIÓN</div>
-    <p style="font-size:13px;color:var(--tx-3);margin-bottom:16px">
+    <div class="font-orbitron font-bold mb-2" style="font-size:17px;color:var(--tx-1)">CONFIRMAR ELIMINACIÓN</div>
+    <p style="font-size:15px;color:var(--tx-3);margin-bottom:16px">
       ¿Eliminar <strong style="color:var(--ac-red)">{{deleteTarget.hostname}}</strong> ({{deleteTarget.ip}}) del inventario?
       Esta acción no se puede deshacer.
     </p>

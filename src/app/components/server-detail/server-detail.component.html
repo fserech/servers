@@ -4,24 +4,24 @@
   <div class="flex items-center gap-3 mb-5 flex-wrap">
     <button class="btn-ghost" (click)="goBack()">← Volver</button>
     <div class="flex-1 min-w-0">
-      <div class="font-orbitron font-black truncate" style="font-size:20px;letter-spacing:.06em;color:var(--tx-1)">{{server.hostname}}</div>
-      <div class="font-mono" style="font-size:10px;color:var(--tx-4);margin-top:2px">{{server.id}} · {{server.os}} · {{server.location}}</div>
+      <div class="font-orbitron font-black truncate" style="font-size:23px;letter-spacing:.06em;color:var(--tx-1)">{{server.hostname}}</div>
+      <div class="font-mono" style="font-size:11.5px;color:var(--tx-4);margin-top:2px">{{server.id}} · {{server.os}} · {{server.location}}</div>
     </div>
     <!-- Status pill -->
     <div class="badge flex items-center gap-2"
-      style="padding:5px 14px;font-size:11px"
+      style="padding:5px 14px;font-size:12.5px"
       [class.badge-green]="server.status==='active'" [class.badge-red]="server.status!=='active'">
       <span class="dot animate-pulse-dot"
         [class.dot-green]="server.status==='active'" [class.dot-red]="server.status!=='active'"></span>
       {{server.status==='active' ? 'EN LÍNEA' : 'FUERA DE LÍNEA'}}
     </div>
     <!-- Action buttons -->
-    <button class="btn-icon btn-icon-amber" style="padding:8px 14px;font-size:12px;letter-spacing:.06em;font-family:'Rajdhani',sans-serif;font-weight:700" (click)="showEditModal=true">
+    <button class="btn-icon btn-icon-amber" style="padding:8px 14px;font-size:14px;letter-spacing:.06em;font-family:'Rajdhani',sans-serif;font-weight:700" (click)="showEditModal=true">
       ✏️ Editar
     </button>
     <button *ngIf="server.status==='active'"  class="btn-danger"  (click)="shutdownTarget=server">⏻ Apagar</button>
     <button *ngIf="server.status!=='active'" class="btn-primary" (click)="activate()">▶ Reactivar</button>
-    <button class="btn-icon btn-icon-ghost" style="padding:8px 12px;font-size:14px" (click)="deleteServer()">✕</button>
+    <button class="btn-icon btn-icon-ghost" style="padding:8px 12px;font-size:16px" (click)="deleteServer()">✕</button>
   </div>
 
   <!-- Live metrics -->
@@ -89,7 +89,7 @@
         <span class="section-label" style="margin-bottom:0">DISK</span>
         <div class="text-center mt-2">
           <div class="section-label" style="margin-bottom:2px">UPTIME</div>
-          <div class="font-mono font-bold" style="font-size:13px;color:var(--ac-green)">{{server.uptime}}</div>
+          <div class="font-mono font-bold" style="font-size:15px;color:var(--ac-green)">{{server.uptime}}</div>
         </div>
       </div>
 
@@ -98,13 +98,13 @@
         <div class="rounded-xl p-3 text-center"
           [style.background]="server.temp>70 ? 'var(--tint-red-bg)' : 'var(--tint-green-bg)'"
           [style.border]="server.temp>70 ? '1px solid var(--tint-red-br)' : '1px solid var(--tint-green-br)'">
-          <div class="font-orbitron font-black" style="font-size:28px;line-height:1"
+          <div class="font-orbitron font-black" style="font-size:32px;line-height:1"
             [style.color]="server.temp>70 ? 'var(--ac-red)' : 'var(--ac-green)'">{{server.temp}}°</div>
-          <div class="section-label" style="margin:3px 0 0;font-size:8.5px">TEMPERATURA</div>
+          <div class="section-label" style="margin:3px 0 0;font-size:10px">TEMPERATURA</div>
         </div>
         <div>
-          <div class="font-mono font-bold text-center" style="font-size:15px;color:var(--ac-amber)">{{server.net}}</div>
-          <div class="section-label text-center" style="margin:2px 0 4px;font-size:8.5px">Kbps RED</div>
+          <div class="font-mono font-bold text-center" style="font-size:17px;color:var(--ac-amber)">{{server.net}}</div>
+          <div class="section-label text-center" style="margin:2px 0 4px;font-size:10px">Kbps RED</div>
           <svg width="110" height="28" viewBox="0 0 110 28" style="overflow:visible;display:block;margin:0 auto">
             <defs><linearGradient id="gnet" x1="0" x2="0" y1="0" y2="1">
               <stop offset="0%" stop-color="var(--ac-amber)" stop-opacity=".4"/>
@@ -119,7 +119,7 @@
           <div class="section-label" style="margin-bottom:5px">SERVICIOS</div>
           <div class="flex gap-1 flex-wrap">
             <span *ngFor="let sv of server.services" class="font-mono rounded px-2 py-0.5"
-              style="font-size:9.5px;color:var(--tx-3);background:var(--bg-sunken);border:1px solid var(--br)">
+              style="font-size:11px;color:var(--tx-3);background:var(--bg-sunken);border:1px solid var(--br)">
               {{sv}}
             </span>
           </div>
@@ -132,8 +132,8 @@
   <div *ngIf="server.status!=='active' && server.shutdownReason" class="rounded-xl p-4 mb-4"
     style="background:var(--tint-red-bg);border:1px solid var(--tint-red-br)">
     <div class="section-label" style="color:var(--ac-red);margin-bottom:6px">⚠ RAZÓN DE APAGADO</div>
-    <div style="font-size:14px;color:var(--tx-1);margin-bottom:5px">{{server.shutdownReason}}</div>
-    <div style="font-size:11px;color:var(--tx-3)">
+    <div style="font-size:16px;color:var(--tx-1);margin-bottom:5px">{{server.shutdownReason}}</div>
+    <div style="font-size:12.5px;color:var(--tx-3)">
       Por <span style="color:var(--tx-2)">{{server.shutdownBy}}</span> · {{formatDate(server.shutdownAt||'')}}
     </div>
   </div>
@@ -170,19 +170,19 @@
           style="background:var(--bg-sunken);border:1px solid var(--br-section)">
           <div class="flex items-center gap-2">
             <span class="font-mono font-black"
-              style="font-size:13px"
+              style="font-size:15px"
               [style.color]="port===22?'var(--ac-amber)':port===80?'var(--ac-blue)':port===443?'var(--ac-green)':port===3306||port===5432||port===1521?'var(--ac-purple)':'var(--tx-2)'">
               :{{port}}
             </span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="font-rajdhani font-semibold" style="font-size:11px;color:var(--tx-3)">
+            <span class="font-rajdhani font-semibold" style="font-size:12.5px;color:var(--tx-3)">
               {{server.portLabels?.[port] || '—'}}
             </span>
             <span class="dot animate-pulse-dot dot-green" style="width:7px;height:7px;flex-shrink:0"></span>
           </div>
         </div>
-        <div *ngIf="!server.openPorts?.length" style="font-size:12px;color:var(--tx-4)">Sin puertos registrados</div>
+        <div *ngIf="!server.openPorts?.length" style="font-size:14px;color:var(--tx-4)">Sin puertos registrados</div>
       </div>
     </div>
 
@@ -193,10 +193,10 @@
         <div *ngFor="let app of server.applications"
           class="flex items-center gap-2 rounded-lg px-3 py-2"
           style="background:var(--bg-sunken);border:1px solid var(--br-section)">
-          <span style="font-size:13px">💾</span>
-          <span class="font-rajdhani font-semibold" style="font-size:12px;color:var(--tx-2)">{{app}}</span>
+          <span style="font-size:15px">💾</span>
+          <span class="font-rajdhani font-semibold" style="font-size:14px;color:var(--tx-2)">{{app}}</span>
         </div>
-        <div *ngIf="!server.applications?.length" style="font-size:12px;color:var(--tx-4)">Sin aplicaciones registradas</div>
+        <div *ngIf="!server.applications?.length" style="font-size:14px;color:var(--tx-4)">Sin aplicaciones registradas</div>
       </div>
     </div>
 
@@ -207,10 +207,10 @@
         <div *ngFor="let u of server.authorizedUsers"
           class="flex items-center gap-2 rounded-lg px-3 py-2"
           style="background:var(--bg-sunken);border:1px solid var(--br-section)">
-          <span style="font-size:12px">👤</span>
-          <span class="font-rajdhani font-semibold" style="font-size:12px;color:var(--tx-2)">{{u}}</span>
+          <span style="font-size:14px">👤</span>
+          <span class="font-rajdhani font-semibold" style="font-size:14px;color:var(--tx-2)">{{u}}</span>
         </div>
-        <div *ngIf="!server.authorizedUsers?.length" style="font-size:12px;color:var(--tx-4)">Sin usuarios asignados</div>
+        <div *ngIf="!server.authorizedUsers?.length" style="font-size:14px;color:var(--tx-4)">Sin usuarios asignados</div>
       </div>
     </div>
   </div>
@@ -220,19 +220,19 @@
     <div class="section-label">HISTORIAL DE EVENTOS</div>
     <div *ngFor="let l of server.logs.slice().reverse()" class="flex gap-3 py-2.5" style="border-bottom:1px solid var(--br-section)">
       <div class="font-mono font-bold flex items-center justify-center rounded-lg flex-shrink-0"
-        style="width:30px;height:30px;font-size:12px"
+        style="width:30px;height:30px;font-size:14px"
         [style.background]="logBg(l.type)" [style.color]="logColor(l.type)">
         {{logIcon(l.type)}}
       </div>
       <div>
-        <div class="font-rajdhani font-semibold" style="font-size:13px;color:var(--tx-2)">{{l.event}}</div>
-        <div class="font-mono" style="font-size:9.5px;color:var(--tx-4);margin-top:2px">{{formatDate(l.time)}} · {{l.user}}</div>
+        <div class="font-rajdhani font-semibold" style="font-size:15px;color:var(--tx-2)">{{l.event}}</div>
+        <div class="font-mono" style="font-size:11px;color:var(--tx-4);margin-top:2px">{{formatDate(l.time)}} · {{l.user}}</div>
       </div>
     </div>
   </div>
 </div>
 
-<div *ngIf="!server" class="py-20 text-center" style="color:var(--tx-4);font-size:14px">Servidor no encontrado</div>
+<div *ngIf="!server" class="py-20 text-center" style="color:var(--tx-4);font-size:16px">Servidor no encontrado</div>
 
 <app-edit-server-modal *ngIf="showEditModal && server" [server]="server"
   (close)="showEditModal=false" (save)="onEditSave($event)"></app-edit-server-modal>

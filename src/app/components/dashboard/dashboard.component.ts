@@ -45,6 +45,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnDestroy() { this.subs.forEach(s => s.unsubscribe()); }
 
   goToServer(s: Server) { this.router.navigate(['/servers', s.id]); }
+  // midpoint between FortiGate and node (for the connector dot)
+  midX(i: number, cx: number, cy: number, nx: number, ny: number) { return cx + (nx - cx) * 0.55; }
+  midY(i: number, cx: number, cy: number, nx: number, ny: number) { return cy + (ny - cy) * 0.55; }
   nodeXL(i: number) { return 400 + 200 * Math.cos(i / this.servers.length * 2 * Math.PI - Math.PI/2); }
   nodeYL(i: number) { return 200 + 175 * Math.sin(i / this.servers.length * 2 * Math.PI - Math.PI/2); }
   nodeX(i: number) { return 160 + 88 * Math.cos(i / this.servers.length * 2 * Math.PI - Math.PI/2); }

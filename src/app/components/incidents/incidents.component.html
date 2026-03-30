@@ -2,8 +2,8 @@
   <!-- Header -->
   <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
     <div>
-      <h1 class="font-orbitron font-black" style="font-size:20px;color:var(--tx-1);letter-spacing:.06em">GESTIÓN DE INCIDENTES</h1>
-      <p style="font-size:12px;color:var(--tx-3);margin-top:2px">Control y seguimiento de incidencias operacionales</p>
+      <h1 class="font-orbitron font-black" style="font-size:23px;color:var(--tx-1);letter-spacing:.06em">GESTIÓN DE INCIDENTES</h1>
+      <p style="font-size:14px;color:var(--tx-3);margin-top:2px">Control y seguimiento de incidencias operacionales</p>
     </div>
     <button class="btn-primary" (click)="showNew=true">+ Nuevo Incidente</button>
   </div>
@@ -16,8 +16,8 @@
       {l:'RESUELTOS',    v:count('resolved'),    c:'var(--ac-green)',  bg:'var(--tint-green-bg)',  br:'var(--tint-green-br)'},
       {l:'CRÍTICOS',     v:count('critical'),    c:'var(--ac-red)',    bg:'var(--tint-red-bg)',    br:'var(--tint-red-br)'}]"
       class="kpi-card" [style.border-color]="s.br">
-      <div style="font-size:9.5px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.15em;color:var(--tx-3);margin-bottom:6px">{{s.l}}</div>
-      <div class="font-orbitron font-black" style="font-size:32px;line-height:1" [style.color]="s.c">{{s.v}}</div>
+      <div style="font-size:11px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.15em;color:var(--tx-3);margin-bottom:6px">{{s.l}}</div>
+      <div class="font-orbitron font-black" style="font-size:37px;line-height:1" [style.color]="s.c">{{s.v}}</div>
     </div>
   </div>
 
@@ -44,23 +44,23 @@
         [style.border-left]="'4px solid '+priorityColor(inc.priority)">
         <div class="flex items-start gap-4">
           <div class="flex flex-col items-center gap-2" style="flex-shrink:0">
-            <span style="font-size:22px">{{catIcon(inc.category)}}</span>
-            <span class="font-mono font-bold" style="font-size:9px;color:var(--tx-4)">{{inc.id}}</span>
+            <span style="font-size:25.5px">{{catIcon(inc.category)}}</span>
+            <span class="font-mono font-bold" style="font-size:10.5px;color:var(--tx-4)">{{inc.id}}</span>
           </div>
           <div style="flex:1;min-width:0">
             <div class="flex items-center gap-2 mb-1 flex-wrap">
-              <span class="font-rajdhani font-bold" style="font-size:15px;color:var(--tx-1)">{{inc.title}}</span>
+              <span class="font-rajdhani font-bold" style="font-size:17px;color:var(--tx-1)">{{inc.title}}</span>
               <span class="badge" [style.background]="priorityBg(inc.priority)" [style.border]="'1px solid '+priorityColor(inc.priority)" [style.color]="priorityColor(inc.priority)"
-                style="font-size:9.5px;padding:2px 9px">{{inc.priority.toUpperCase()}}</span>
-              <span class="font-rajdhani font-bold rounded px-2 py-0.5" style="font-size:9.5px;border:1px solid var(--br)"
+                style="font-size:11px;padding:2px 9px">{{inc.priority.toUpperCase()}}</span>
+              <span class="font-rajdhani font-bold rounded px-2 py-0.5" style="font-size:11px;border:1px solid var(--br)"
                 [style.color]="statusColor(inc.status)">{{statusLabel(inc.status)}}</span>
-              <span *ngIf="slaStatus(inc)==='breached'" class="badge badge-red" style="font-size:9px">SLA EXCEDIDO</span>
-              <span *ngIf="slaStatus(inc)==='warning'" class="badge badge-amber" style="font-size:9px">SLA En Riesgo</span>
+              <span *ngIf="slaStatus(inc)==='breached'" class="badge badge-red" style="font-size:10.5px">SLA EXCEDIDO</span>
+              <span *ngIf="slaStatus(inc)==='warning'" class="badge badge-amber" style="font-size:10.5px">SLA En Riesgo</span>
             </div>
-            <p style="font-size:12px;color:var(--tx-3);line-height:1.5;margin-bottom:8px">
+            <p style="font-size:14px;color:var(--tx-3);line-height:1.5;margin-bottom:8px">
               {{inc.description.length>120?inc.description.slice(0,120)+'…':inc.description}}
             </p>
-            <div class="flex gap-4 flex-wrap" style="font-size:11px;color:var(--tx-3)">
+            <div class="flex gap-4 flex-wrap" style="font-size:12.5px;color:var(--tx-3)">
               <span>🖥 <strong style="color:var(--tx-2)">{{inc.serverName}}</strong></span>
               <span>👤 <strong style="color:var(--tx-2)">{{inc.assignedTo}}</strong></span>
               <span>🕐 Hace {{elapsed(inc.createdAt)}}</span>
@@ -69,14 +69,14 @@
             </div>
           </div>
           <div style="flex-shrink:0;text-align:right">
-            <div style="font-size:9px;color:var(--tx-4)">Creado</div>
-            <div class="font-mono" style="font-size:10px;color:var(--tx-3)">{{fmtDate(inc.createdAt)}}</div>
-            <div *ngIf="inc.eta" style="font-size:9px;color:var(--tx-4);margin-top:4px">ETA</div>
-            <div *ngIf="inc.eta" class="font-mono" style="font-size:10px;color:var(--ac-amber)">{{fmtDate(inc.eta)}}</div>
+            <div style="font-size:10.5px;color:var(--tx-4)">Creado</div>
+            <div class="font-mono" style="font-size:11.5px;color:var(--tx-3)">{{fmtDate(inc.createdAt)}}</div>
+            <div *ngIf="inc.eta" style="font-size:10.5px;color:var(--tx-4);margin-top:4px">ETA</div>
+            <div *ngIf="inc.eta" class="font-mono" style="font-size:11.5px;color:var(--ac-amber)">{{fmtDate(inc.eta)}}</div>
           </div>
         </div>
       </div>
-      <div *ngIf="filtered.length===0" class="py-10 text-center" style="color:var(--tx-4);font-size:13px">No hay incidentes con estos filtros</div>
+      <div *ngIf="filtered.length===0" class="py-10 text-center" style="color:var(--tx-4);font-size:15px">No hay incidentes con estos filtros</div>
     </div>
   </div>
 
@@ -85,8 +85,8 @@
     <div class="flex items-center gap-3 mb-5 flex-wrap">
       <button class="btn-ghost" (click)="selected=null">← Incidentes</button>
       <div class="flex-1">
-        <div class="font-orbitron font-bold" style="font-size:18px;color:var(--tx-1)">{{selected.title}}</div>
-        <div class="font-mono" style="font-size:10px;color:var(--tx-4);margin-top:2px">{{selected.id}} · {{selected.serverName}}</div>
+        <div class="font-orbitron font-bold" style="font-size:20.5px;color:var(--tx-1)">{{selected.title}}</div>
+        <div class="font-mono" style="font-size:11.5px;color:var(--tx-4);margin-top:2px">{{selected.id}} · {{selected.serverName}}</div>
       </div>
       <span class="badge" [style.background]="priorityBg(selected.priority)" [style.border]="'1px solid '+priorityColor(selected.priority)" [style.color]="priorityColor(selected.priority)">
         {{selected.priority.toUpperCase()}}
@@ -101,10 +101,10 @@
         <!-- Description -->
         <div class="card p-5 mb-4">
           <div class="section-label">DESCRIPCIÓN</div>
-          <p style="font-size:13px;color:var(--tx-2);line-height:1.75">{{selected.description}}</p>
+          <p style="font-size:15px;color:var(--tx-2);line-height:1.75">{{selected.description}}</p>
           <div class="flex gap-2 flex-wrap mt-3">
             <span *ngFor="let svc of selected.affectedServices" class="font-mono rounded px-2 py-1"
-              style="font-size:10px;color:var(--tx-3);background:var(--bg-sunken);border:1px solid var(--br)">{{svc}}</span>
+              style="font-size:11.5px;color:var(--tx-3);background:var(--bg-sunken);border:1px solid var(--br)">{{svc}}</span>
           </div>
         </div>
         <!-- Comments -->
@@ -114,13 +114,13 @@
             <div *ngFor="let c of selected.comments" class="rounded-lg p-3" style="background:var(--bg-sunken);border:1px solid var(--br)">
               <div class="flex items-center gap-2 mb-1">
                 <div class="w-6 h-6 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0"
-                  style="font-size:9px;background:linear-gradient(135deg,var(--ac-blue),#0057cc)">
+                  style="font-size:10.5px;background:linear-gradient(135deg,var(--ac-blue),#0057cc)">
                   {{initials(c.user)}}
                 </div>
-                <span class="font-rajdhani font-semibold" style="font-size:12px;color:var(--tx-2)">{{c.user}}</span>
-                <span class="font-mono" style="font-size:9.5px;color:var(--tx-4)">{{fmtDate(c.time)}}</span>
+                <span class="font-rajdhani font-semibold" style="font-size:14px;color:var(--tx-2)">{{c.user}}</span>
+                <span class="font-mono" style="font-size:11px;color:var(--tx-4)">{{fmtDate(c.time)}}</span>
               </div>
-              <p style="font-size:12.5px;color:var(--tx-2);line-height:1.6;padding-left:26px">{{c.text}}</p>
+              <p style="font-size:14.5px;color:var(--tx-2);line-height:1.6;padding-left:26px">{{c.text}}</p>
             </div>
           </div>
           <div class="flex gap-2">
@@ -155,7 +155,7 @@
             ['Abierto',  selected.status!=='resolved'&&selected.status!=='closed' ? elapsed(selected.createdAt) : '—']]"
             class="info-row">
             <span class="info-label">{{r[0]}}</span>
-            <span class="info-val" style="font-family:'Rajdhani',sans-serif;font-size:11px">{{r[1]}}</span>
+            <span class="info-val" style="font-family:'Rajdhani',sans-serif;font-size:12.5px">{{r[1]}}</span>
           </div>
         </div>
       </div>
@@ -169,8 +169,8 @@
     <div class="flex items-center gap-3 mb-6">
       <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style="background:linear-gradient(135deg,var(--ac-red),#c00)">🚨</div>
       <div>
-        <div class="font-orbitron font-black" style="font-size:15px;color:var(--tx-1)">NUEVO INCIDENTE</div>
-        <div class="font-mono" style="font-size:10px;color:var(--tx-4);margin-top:2px">Registrar nueva incidencia</div>
+        <div class="font-orbitron font-black" style="font-size:17px;color:var(--tx-1)">NUEVO INCIDENTE</div>
+        <div class="font-mono" style="font-size:11.5px;color:var(--tx-4);margin-top:2px">Registrar nueva incidencia</div>
       </div>
     </div>
     <div class="grid grid-cols-2 gap-4">
