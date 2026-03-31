@@ -1,0 +1,141 @@
+<div class="animate-fade-up">
+  <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+    <div>
+      <h1 class="font-orbitron font-black" style="font-size:23px;color:var(--tx-1);letter-spacing:.06em">USUARIOS Y ROLES</h1>
+      <p style="font-size:14px;color:var(--tx-3);margin-top:2px">Gestión de accesos al sistema de control</p>
+    </div>
+    <button class="btn-primary" (click)="showNew=true">+ Nuevo Usuario</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-4 gap-3 mb-5">
+    <div *ngFor="let s of [
+      {l:'TOTAL',           v:users.length,    c:'var(--ac-blue)'},
+      {l:'ACTIVOS',         v:activeCount,     c:'var(--ac-green)'},
+      {l:'CON MFA',         v:mfaCount,        c:'var(--ac-amber)'},
+      {l:'ADMINISTRADORES', v:adminCount,      c:'var(--ac-red)'}]"
+      class="kpi-card">
+      <div style="font-size:11px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.15em;color:var(--tx-3);margin-bottom:6px">{{s.l}}</div>
+      <div class="font-orbitron font-black" style="font-size:37px;line-height:1" [style.color]="s.c">{{s.v}}</div>
+    </div>
+  </div>
+
+  <div *ngIf="!selected">
+    <div class="card overflow-hidden">
+      <div class="th-row grid" style="grid-template-columns:50px 1fr 200px 120px 120px 140px 120px 100px">
+        <div></div><div>NOMBRE</div><div>EMAIL</div><div>ROL</div>
+        <div>DEPARTAMENTO</div><div>ÚLTIMO ACCESO</div><div>MFA</div><div>ACCIONES</div>
+      </div>
+      <div *ngFor="let u of users; let i=index"
+        class="td-row grid items-center"
+        style="grid-template-columns:50px 1fr 200px 120px 120px 140px 120px 100px"
+        [style.background]="i%2!==0 ? 'var(--bg-row-alt)' : ''"
+        [style.opacity]="u.active ? '1' : '0.55'"
+        (click)="selected=u">
+        <!-- Avatar -->
+        <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0"
+          style="font-size:12.5px;background:linear-gradient(135deg,var(--ac-blue),#0057cc)">{{u.avatar}}</div>
+        <!-- Name -->
+        <div>
+          <div class="font-rajdhani font-bold" style="font-size:15px;color:var(--tx-1)">{{u.name}}</div>
+          <div style="font-size:11.5px;color:var(--tx-4)">{{u.id}} · {{u.loginCount}} accesos</div>
+        </div>
+        <!-- Email -->
+        <div class="font-mono" style="font-size:11.5px;color:var(--tx-3)">{{u.email}}</div>
+        <!-- Role -->
+        <div>
+          <span class="badge" style="font-size:11px" [style.background]="roleBg(u.role)" [style.border]="'1px solid '+roleColor(u.role)+'44'" [style.color]="roleColor(u.role)">
+            {{roleLabel(u.role)}}
+          </span>
+        </div>
+        <!-- Dept -->
+        <div style="font-size:12.5px;color:var(--tx-3)">{{u.department}}</div>
+        <!-- Last login -->
+        <div class="font-mono" style="font-size:11.5px;color:var(--tx-4)">{{fmtDate(u.lastLogin)}}</div>
+        <!-- MFA -->
+        <div>
+          <span *ngIf="u.mfaEnabled"  class="badge badge-green" style="font-size:10.5px">MFA ON</span>
+          <span *ngIf="!u.mfaEnabled" class="badge badge-red"   style="font-size:10.5px">MFA OFF</span>
+        </div>
+        <!-- Actions -->
+        <div class="flex gap-1" (click)="$event.stopPropagation()">
+          <button class="btn-icon" (click)="selected=u" title="Ver detalle"
+            style="background:var(--tint-blue-bg);border-color:var(--tint-blue-br);color:var(--ac-blue)">👁</button>
+          <button class="btn-icon" (click)="toggleActive(u)" title="Activar/Desactivar"
+            [style.background]="u.active?'var(--tint-amber-bg)':'var(--tint-green-bg)'"
+            [style.border-color]="u.active?'var(--tint-amber-br)':'var(--tint-green-br)'"
+            [style.color]="u.active?'var(--ac-amber)':'var(--ac-green)'">
+            {{u.active ? '⊘' : '▶'}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User detail -->
+  <div *ngIf="selected" class="animate-slide-right">
+    <div class="flex items-center gap-3 mb-5 flex-wrap">
+      <button class="btn-ghost" (click)="selected=null">← Usuarios</button>
+      <div class="flex items-center gap-3 flex-1">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
+          style="background:linear-gradient(135deg,var(--ac-blue),#0057cc)">{{selected.avatar}}</div>
+        <div>
+          <div class="font-orbitron font-bold" style="font-size:20.5px;color:var(--tx-1)">{{selected.name}}</div>
+          <div class="font-mono" style="font-size:11.5px;color:var(--tx-4)">{{selected.id}} · {{selected.email}}</div>
+        </div>
+      </div>
+      <span class="badge" [style.background]="roleBg(selected.role)" [style.border]="'1px solid '+roleColor(selected.role)+'44'" [style.color]="roleColor(selected.role)" style="font-size:15px;padding:4px 16px">
+        {{roleLabel(selected.role)}}
+      </span>
+      <span *ngIf="!selected.active" class="badge badge-red" style="font-size:14px;padding:4px 14px">DESACTIVADO</span>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div class="card p-5">
+        <div class="section-label">INFORMACIÓN</div>
+        <div *ngFor="let r of [['ID',selected.id],['Email',selected.email],['Departamento',selected.department],['Rol',roleLabel(selected.role)],['MFA',selected.mfaEnabled?'Habilitado':'Deshabilitado'],['Estado',selected.active?'Activo':'Desactivado'],['Creado',fmtDate(selected.createdAt)],['Último acceso',fmtDate(selected.lastLogin)],['Total accesos',selected.loginCount+' sesiones']]"
+          class="info-row"><span class="info-label">{{r[0]}}</span><span class="info-val" style="font-family:'Rajdhani',sans-serif">{{r[1]}}</span></div>
+      </div>
+      <div class="card p-5">
+        <div class="section-label">PERMISOS</div>
+        <div class="flex flex-wrap gap-2">
+          <span *ngFor="let p of selected.permissions" class="font-mono rounded px-2 py-1"
+            style="font-size:11.5px;color:var(--ac-blue);background:var(--tint-blue-bg);border:1px solid var(--tint-blue-br)">{{p}}</span>
+          <div *ngIf="selected.permissions.length===0" style="color:var(--tx-4);font-size:14px">Sin permisos asignados</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showNew" class="modal-overlay">
+  <div class="modal-panel p-7" style="width:520px">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style="background:linear-gradient(135deg,var(--ac-blue),#0057cc)">👤</div>
+      <div>
+        <div class="font-orbitron font-black" style="font-size:17px;color:var(--tx-1)">NUEVO USUARIO</div>
+        <div class="font-mono" style="font-size:11.5px;color:var(--tx-4);margin-top:2px">Crear cuenta de acceso</div>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      <div><label class="form-label">Nombre completo *</label>
+        <input [(ngModel)]="newModel.name" class="input-field" placeholder="Juan Pérez"/></div>
+      <div><label class="form-label">Email *</label>
+        <input [(ngModel)]="newModel.email" class="input-field" placeholder="jperez@empresa.gt"/></div>
+      <div><label class="form-label">Rol</label>
+        <select [(ngModel)]="newModel.role" class="input-field">
+          <option *ngFor="let r of roles" [value]="r">{{roleLabel(r)}}</option>
+        </select>
+      </div>
+      <div><label class="form-label">Departamento</label>
+        <select [(ngModel)]="newModel.department" class="input-field">
+          <option *ngFor="let d of departments" [value]="d">{{d}}</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex gap-3 justify-end mt-5">
+      <button class="btn-ghost" (click)="showNew=false">Cancelar</button>
+      <button class="btn-primary" [disabled]="!newModel.name||!newModel.email" (click)="createUser()">Crear Usuario</button>
+    </div>
+  </div>
+</div>

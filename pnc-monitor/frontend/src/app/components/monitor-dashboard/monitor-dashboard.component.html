@@ -1,0 +1,220 @@
+<div class="animate-fade-up">
+
+  <!-- Header bar -->
+  <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+    <div>
+      <h1 class="font-orbitron font-black" style="font-size:21px;color:var(--tx-1);letter-spacing:.06em">
+        MONITOREO EN TIEMPO REAL
+      </h1>
+      <div class="flex items-center gap-3 mt-1">
+        <!-- Connection status -->
+        <div class="flex items-center gap-1.5">
+          <span class="dot animate-pulse-dot" [class.dot-green]="connected" [class.dot-red]="!connected"
+            style="width:8px;height:8px"></span>
+          <span class="font-mono" style="font-size:10px"
+            [style.color]="connected?'var(--ac-green)':'var(--ac-red)'">
+            {{connected ? 'BACKEND CONECTADO' : 'RECONECTANDO...'}}
+          </span>
+        </div>
+        <span style="font-size:10px;color:var(--tx-4)">·</span>
+        <span class="font-mono" style="font-size:10px;color:var(--tx-4)">
+          Último check: {{fmtTime(lastUpdate)}}
+        </span>
+        <span style="font-size:10px;color:var(--tx-4)">·</span>
+        <span class="font-mono" style="font-size:10px;color:var(--tx-4)">
+          {{results.length}} / 34 targets
+        </span>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn-ghost" (click)="forceCheckAll()" [disabled]="forcing" style="font-size:12px">
+        {{forcing ? '⟳ Verificando...' : '⟳ Forzar Check'}}
+      </button>
+    </div>
+  </div>
+
+  <!-- Critical alert banner -->
+  <div *ngIf="criticalAlerts.length > 0"
+    class="rounded-xl p-3 mb-4 flex items-center gap-3 flex-wrap"
+    style="background:var(--tint-red-bg);border:1px solid var(--tint-red-br)">
+    <span class="animate-pulse-dot" style="font-size:18px">🔴</span>
+    <span class="font-orbitron font-black" style="font-size:13px;color:var(--ac-red);letter-spacing:.06em">
+      {{criticalAlerts.length}} SERVIDOR{{criticalAlerts.length>1?'ES':''}} CAÍDO{{criticalAlerts.length>1?'S':''}}
+    </span>
+    <span *ngFor="let a of criticalAlerts.slice(0,4)"
+      class="font-mono rounded px-2 py-0.5"
+      style="font-size:10px;color:var(--ac-red);background:rgba(248,113,113,.12);border:1px solid var(--tint-red-br)">
+      {{a.hostname}} · {{a.ip}}
+    </span>
+    <span *ngIf="criticalAlerts.length > 4" style="font-size:10px;color:var(--ac-red)">
+      +{{criticalAlerts.length-4}} más
+    </span>
+  </div>
+
+  <!-- KPI row -->
+  <div class="grid grid-cols-6 gap-3 mb-5">
+    <div class="kpi-card" style="padding:14px 16px;border-color:var(--tint-green-br)">
+      <div style="font-size:9.5px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.14em;color:var(--ac-green);margin-bottom:5px">EN LÍNEA</div>
+      <div class="font-orbitron font-black" style="font-size:32px;color:var(--ac-green);line-height:1">{{up}}</div>
+      <div class="mbar mt-2"><div class="mbar-fill" [style.width]="results.length?(up*100/results.length)+'%':'0'" style="background:var(--ac-green)"></div></div>
+    </div>
+    <div class="kpi-card" style="padding:14px 16px" [style.border-color]="down>0?'var(--tint-red-br)':''">
+      <div style="font-size:9.5px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.14em;margin-bottom:5px" [style.color]="down>0?'var(--ac-red)':'var(--tx-3)'">CAÍDOS</div>
+      <div class="font-orbitron font-black" style="font-size:32px;line-height:1" [style.color]="down>0?'var(--ac-red)':'var(--tx-4)'">{{down}}</div>
+      <div *ngIf="down>0" class="dot dot-red animate-pulse-dot mt-2"></div>
+    </div>
+    <div class="kpi-card" style="padding:14px 16px" [style.border-color]="degraded>0?'var(--tint-amber-br)':''">
+      <div style="font-size:9.5px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.14em;color:var(--ac-amber);margin-bottom:5px">DEGRADADOS</div>
+      <div class="font-orbitron font-black" style="font-size:32px;color:var(--ac-amber);line-height:1">{{degraded}}</div>
+    </div>
+    <div class="kpi-card" style="padding:14px 16px">
+      <div style="font-size:9.5px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.14em;color:var(--tx-3);margin-bottom:5px">SIN DATOS</div>
+      <div class="font-orbitron font-black" style="font-size:32px;color:var(--tx-4);line-height:1">{{unknown}}</div>
+    </div>
+    <div class="kpi-card" style="padding:14px 16px">
+      <div style="font-size:9.5px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.14em;color:var(--tx-3);margin-bottom:5px">LATENCIA PROM.</div>
+      <div class="font-orbitron font-black" style="font-size:28px;line-height:1"
+        [style.color]="avgLatency<10?'var(--ac-green)':avgLatency<100?'var(--ac-blue)':'var(--ac-amber)'">
+        {{avgLatency}}<span style="font-size:12px">ms</span>
+      </div>
+    </div>
+    <div class="kpi-card" style="padding:14px 16px" [style.border-color]="activeAlerts.length?'var(--tint-red-br)':''">
+      <div style="font-size:9.5px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.14em;margin-bottom:5px" [style.color]="activeAlerts.length?'var(--ac-red)':'var(--tx-3)'">ALERTAS ACTIVAS</div>
+      <div class="font-orbitron font-black" style="font-size:32px;line-height:1" [style.color]="activeAlerts.length?'var(--ac-red)':'var(--tx-4)'">{{activeAlerts.length}}</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="flex gap-2 mb-4 flex-wrap items-center">
+    <input [(ngModel)]="search" placeholder="Buscar hostname, IP, aplicación..."
+      class="input-field" style="max-width:280px"/>
+    <div class="flex gap-1">
+      <button *ngFor="let f of [
+        {v:'all',l:'Todos'},
+        {v:'UP',l:'En Línea'},
+        {v:'DOWN_ALL',l:'Con Problemas'},
+        {v:'DOWN',l:'Caídos'}]"
+        class="filter-pill" [class.active]="filterStatus===f.v"
+        (click)="filterStatus=f.v">
+        {{f.l}} <span style="opacity:.6">({{countStatus(f.v)}})</span>
+      </button>
+    </div>
+    <div class="flex gap-1 ml-2">
+      <button *ngFor="let f of [
+        {v:'all',l:'Todos'},{v:'web',l:'Web'},{v:'database',l:'BD'},
+        {v:'api',l:'API'},{v:'infra',l:'Infra'}]"
+        class="filter-pill" [class.active]="filterType===f.v"
+        (click)="filterType=f.v">{{f.l}}</button>
+    </div>
+  </div>
+
+  <!-- No data yet -->
+  <div *ngIf="results.length === 0" class="py-16 text-center">
+    <div style="font-size:40px;margin-bottom:12px">⟳</div>
+    <div style="font-size:15px;color:var(--tx-3)">Realizando primer check de todos los servidores...</div>
+    <div style="font-size:11px;color:var(--tx-4);margin-top:6px">Puede tardar hasta 60 segundos</div>
+  </div>
+
+  <!-- Monitor table -->
+  <div *ngIf="results.length > 0" class="card overflow-hidden">
+    <div class="th-row grid" style="grid-template-columns:72px 190px 120px 90px 100px 1fr 160px 110px 90px">
+      <div>ID</div>
+      <div>HOSTNAME</div>
+      <div>IP</div>
+      <div>TIPO</div>
+      <div>ESTADO</div>
+      <div>PUERTOS</div>
+      <div>HTTP</div>
+      <div>LATENCIA</div>
+      <div>CHECK</div>
+    </div>
+
+    <div *ngFor="let r of filtered; let i=index"
+      class="td-row grid items-center"
+      style="grid-template-columns:72px 190px 120px 90px 100px 1fr 160px 110px 90px;padding:8px 12px;cursor:pointer"
+      [style.background]="i%2!==0?'var(--bg-row-alt)':''"
+      [style.border-left]="r.status==='DOWN'?'3px solid var(--ac-red)':r.status==='UP'?'3px solid var(--ac-green)':'3px solid var(--ac-amber)'"
+      (click)="goDetail(r.id)">
+
+      <!-- ID -->
+      <div class="font-mono font-bold" style="font-size:10px;color:var(--ac-blue)">{{r.id}}</div>
+
+      <!-- Hostname -->
+      <div>
+        <div class="font-rajdhani font-bold" style="font-size:13px;color:var(--tx-1)">{{r.hostname}}</div>
+        <div style="font-size:9px;color:var(--tx-4)">{{r.department}}</div>
+      </div>
+
+      <!-- IP -->
+      <div class="font-mono font-bold" style="font-size:11px;color:var(--tx-2)">{{r.ip}}</div>
+
+      <!-- Type -->
+      <div>
+        <span class="badge" style="font-size:9px;text-transform:uppercase"
+          [class.badge-blue]="r.type==='web'" [class.badge-purple]="r.type==='database'"
+          [class.badge-amber]="r.type==='api'" [class.badge-green]="r.type==='infra'">{{r.type}}</span>
+      </div>
+
+      <!-- Status -->
+      <div>
+        <div class="flex items-center gap-1.5">
+          <span class="dot animate-pulse-dot"
+            [class.dot-green]="r.status==='UP'"
+            [class.dot-red]="r.status==='DOWN'"
+            [style.background]="['DEGRADED','PARTIAL','HTTP_ERROR'].includes(r.status)?'var(--ac-amber)':r.status==='UNKNOWN'?'var(--tx-4)':''">
+          </span>
+          <span class="font-rajdhani font-black" style="font-size:10px;letter-spacing:.06em"
+            [style.color]="mon.statusColor(r.status)">
+            {{mon.statusLabel(r.status)}}
+          </span>
+        </div>
+        <div class="font-mono" style="font-size:8.5px;color:var(--tx-4);margin-top:1px">
+          ping {{r.ping?.alive ? '✓' : '✗'}}
+        </div>
+      </div>
+
+      <!-- Ports -->
+      <div class="flex flex-wrap gap-1">
+        <span *ngFor="let p of r.ports?.slice(0,6)"
+          class="font-mono rounded px-1.5 py-0.5"
+          style="font-size:8.5px;border:1px solid"
+          [style.color]="portColor(p.port, p.open)"
+          [style.border-color]="p.open?portBg(p.port,p.open):'var(--tint-red-br)'"
+          [style.background]="p.open?portBg(p.port,p.open):'var(--tint-red-bg)'"
+          [title]="p.open?'Puerto '+p.port+' abierto ('+p.latency+'ms)':'Puerto '+p.port+' CERRADO'">
+          {{p.port}}{{p.open?'':' ✗'}}
+        </span>
+        <span *ngIf="r.ports?.length > 6" style="font-size:8.5px;color:var(--tx-4)">+{{r.ports.length-6}}</span>
+      </div>
+
+      <!-- HTTP -->
+      <div *ngIf="r.http">
+        <div class="flex items-center gap-1.5">
+          <span class="font-mono font-bold" style="font-size:11px"
+            [style.color]="r.http.ok?'var(--ac-green)':'var(--ac-red)'">
+            {{r.http.status || 'ERR'}}
+          </span>
+          <span style="font-size:9px" [style.color]="r.http.ok?'var(--ac-green)':'var(--ac-red)'">
+            {{r.http.ok ? '✓ OK' : '✗ FALLO'}}
+          </span>
+        </div>
+        <div class="font-mono" style="font-size:8.5px;color:var(--tx-4)">{{r.http.latency}}ms</div>
+      </div>
+      <div *ngIf="!r.http" style="font-size:9px;color:var(--tx-4)">—</div>
+
+      <!-- Latency -->
+      <div>
+        <div class="font-mono font-bold" style="font-size:13px"
+          [style.color]="mon.latencyColor(r.ping?.latency || null)">
+          {{r.ping?.latency != null ? r.ping.latency+'ms' : '—'}}
+        </div>
+      </div>
+
+      <!-- Checked at -->
+      <div class="font-mono" style="font-size:9px;color:var(--tx-4)">
+        {{r.checkedAt ? fmtTime(r.checkedAt) : '—'}}
+      </div>
+    </div>
+  </div>
+
+</div>

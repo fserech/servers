@@ -1,0 +1,145 @@
+<div class="animate-fade-up">
+  <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+    <div>
+      <h1 class="font-orbitron font-black" style="font-size:23px;color:var(--tx-1);letter-spacing:.06em">REPORTES Y ESTADÍSTICAS</h1>
+      <p style="font-size:14px;color:var(--tx-3);margin-top:2px">Análisis del estado general de infraestructura · {{fmtDate(today)}}</p>
+    </div>
+    <button class="btn-primary" (click)="exportCSV()">⬇ Exportar CSV</button>
+  </div>
+
+  <!-- Infrastructure health -->
+  <div class="grid grid-cols-3 gap-4 mb-5">
+    <div class="card p-5" style="grid-column:span 2">
+      <div class="section-label">ESTADO GENERAL DE INFRAESTRUCTURA</div>
+      <div class="grid grid-cols-3 gap-4 mb-4">
+        <div *ngFor="let m of [{l:'CPU Promedio',v:avgCpu,c:'var(--ac-blue)'},{l:'RAM Promedio',v:avgRam,c:'var(--ac-purple)'},{l:'Disco Promedio',v:avgDisk,c:'var(--ac-amber)'}]">
+          <div class="font-orbitron font-black" style="font-size:41.5px;line-height:1" [style.color]="m.c">{{m.v}}%</div>
+          <div style="font-size:11.5px;color:var(--tx-3);margin-top:4px;letter-spacing:.1em">{{m.l}}</div>
+          <div class="mbar" style="margin-top:8px">
+            <div class="mbar-fill" [style.width]="m.v+'%'" [style.background]="m.c"></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-cols-4 gap-3">
+        <div *ngFor="let s of [
+          {l:'En Línea',    v:active,   c:'var(--ac-green)',  pct:pct(active,servers.length)},
+          {l:'Críticos',   v:critical, c:'var(--ac-red)',    pct:pct(critical,servers.length)},
+          {l:'Mantenimiento',v:inactive,c:'var(--ac-amber)',  pct:pct(inactive,servers.length)},
+          {l:'Total',       v:servers.length, c:'var(--ac-blue)', pct:100}]"
+          class="rounded-xl p-3" style="background:var(--bg-sunken);border:1px solid var(--br);text-align:center">
+          <div class="font-orbitron font-bold" style="font-size:27.5px;line-height:1" [style.color]="s.c">{{s.v}}</div>
+          <div style="font-size:11px;color:var(--tx-3);margin-top:4px;letter-spacing:.08em">{{s.l}}</div>
+          <div class="mbar" style="margin-top:6px">
+            <div class="mbar-fill" [style.width]="s.pct+'%'" [style.background]="s.c"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Incidents summary -->
+    <div class="card p-5">
+      <div class="section-label">RESUMEN DE INCIDENTES</div>
+      <div class="flex flex-col gap-3">
+        <div *ngFor="let p of ['critical','high','medium','low']"
+          class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="dot" style="width:10px;height:10px"
+              [class.dot-red]="p==='critical'" [class.dot-red]="p==='high'"
+              [style.background]="p==='critical'?'var(--ac-red)':p==='high'?'var(--ac-orange)':p==='medium'?'var(--ac-amber)':'var(--ac-green)'"></div>
+            <span class="font-rajdhani font-semibold" style="font-size:14px;color:var(--tx-2);text-transform:capitalize">{{p}}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div style="width:80px;height:6px;background:var(--bg-sunken);border-radius:3px;overflow:hidden;border:1px solid var(--br)">
+              <div style="height:100%;border-radius:3px" [style.width]="barW(incByPriority(p), incidents.length)+'%'"
+                [style.background]="p==='critical'?'var(--ac-red)':p==='high'?'var(--ac-orange)':p==='medium'?'var(--ac-amber)':'var(--ac-green)'"></div>
+            </div>
+            <span class="font-orbitron font-bold" style="font-size:16px;width:24px;text-align:right"
+              [style.color]="p==='critical'?'var(--ac-red)':p==='high'?'var(--ac-orange)':p==='medium'?'var(--ac-amber)':'var(--ac-green)'">
+              {{incByPriority(p)}}
+            </span>
+          </div>
+        </div>
+        <div style="border-top:1px solid var(--br-section);margin-top:4px;padding-top:8px">
+          <div class="flex justify-between">
+            <span style="font-size:12.5px;color:var(--tx-3)">Abiertos</span>
+            <span class="font-mono font-bold" style="color:var(--ac-red)">{{openInc}}</span>
+          </div>
+          <div class="flex justify-between mt-1">
+            <span style="font-size:12.5px;color:var(--tx-3)">Resueltos</span>
+            <span class="font-mono font-bold" style="color:var(--ac-green)">{{resolvedInc}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- By department + environment -->
+  <div class="grid grid-cols-2 gap-4 mb-5">
+    <div class="card p-5">
+      <div class="section-label">SERVIDORES POR DEPARTAMENTO</div>
+      <div class="flex flex-col gap-3">
+        <div *ngFor="let d of byDept" class="flex items-center gap-3">
+          <div style="width:130px;font-size:14px;color:var(--tx-2);font-weight:600;flex-shrink:0">{{d.dept}}</div>
+          <div style="flex:1;height:10px;background:var(--bg-sunken);border-radius:5px;overflow:hidden;border:1px solid var(--br)">
+            <div style="height:100%;border-radius:5px;background:var(--ac-blue);opacity:.7;transition:width .6s"
+              [style.width]="barW(d.count, servers.length)+'%'"></div>
+          </div>
+          <div class="flex gap-1" style="flex-shrink:0;width:70px">
+            <span class="font-mono font-bold" style="font-size:15px;color:var(--tx-1)">{{d.count}}</span>
+            <span style="font-size:11.5px;color:var(--ac-green)">+{{d.active}} activos</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card p-5">
+      <div class="section-label">SERVIDORES POR ENTORNO</div>
+      <div class="flex flex-col gap-3">
+        <div *ngFor="let e of byEnv" class="flex items-center gap-3">
+          <div style="width:110px;font-size:14px;color:var(--tx-2);font-weight:600;flex-shrink:0;text-transform:capitalize">{{e.env}}</div>
+          <div style="flex:1;height:10px;background:var(--bg-sunken);border-radius:5px;overflow:hidden;border:1px solid var(--br)">
+            <div style="height:100%;border-radius:5px;transition:width .6s"
+              [style.width]="barW(e.count, servers.length)+'%'"
+              [style.background]="e.env==='production'?'var(--ac-red)':e.env==='staging'?'var(--ac-amber)':e.env==='backup'?'var(--ac-purple)':'var(--ac-green)'"></div>
+          </div>
+          <span class="font-mono font-bold" style="font-size:16px;color:var(--tx-1);width:24px;text-align:right">{{e.count}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Server detail table -->
+  <div class="card overflow-hidden">
+    <div class="th-row grid" style="grid-template-columns:80px 1fr 100px 80px 70px 70px 70px 80px 120px 110px">
+      <div>ID</div><div>HOSTNAME</div><div>ENTORNO</div><div>CPU%</div><div>RAM%</div>
+      <div>DISK%</div><div>°C</div><div>NET Kbps</div><div>ESTADO</div><div>UPTIME</div>
+    </div>
+    <div *ngFor="let s of servers; let i=index"
+      class="td-row grid items-center"
+      style="grid-template-columns:80px 1fr 100px 80px 70px 70px 70px 80px 120px 110px"
+      [style.background]="i%2!==0?'var(--bg-row-alt)':''">
+      <div class="font-mono font-bold" style="font-size:11.5px;color:var(--ac-blue)">{{s.id}}</div>
+      <div>
+        <div class="font-rajdhani font-bold" style="font-size:15px;color:var(--tx-1)">{{s.hostname}}</div>
+        <div style="font-size:10.5px;color:var(--tx-4)">{{s.ip}}</div>
+      </div>
+      <div><span class="badge" style="font-size:10.5px;text-transform:capitalize"
+        [class.badge-red]="s.environment==='production'" [class.badge-amber]="s.environment==='staging'"
+        [class.badge-purple]="s.environment==='backup'" [class.badge-green]="s.environment==='development'">
+        {{s.environment}}</span></div>
+      <div class="font-mono font-bold" style="font-size:14px"
+        [style.color]="s.cpu>85?'var(--ac-red)':s.cpu>65?'var(--ac-amber)':'var(--tx-2)'">{{s.cpu}}%</div>
+      <div class="font-mono font-bold" style="font-size:14px"
+        [style.color]="s.ram>85?'var(--ac-red)':s.ram>65?'var(--ac-amber)':'var(--tx-2)'">{{s.ram}}%</div>
+      <div class="font-mono" style="font-size:14px;color:var(--tx-2)">{{s.disk}}%</div>
+      <div class="font-mono font-bold" style="font-size:14px"
+        [style.color]="s.temp>70?'var(--ac-red)':s.temp>55?'var(--ac-amber)':'var(--tx-2)'">{{s.temp||'—'}}</div>
+      <div class="font-mono" style="font-size:12.5px;color:var(--tx-3)">{{s.net||'—'}}</div>
+      <div>
+        <span class="badge" style="font-size:10.5px"
+          [class.badge-green]="s.status==='active'" [class.badge-red]="s.status==='critical'||s.status==='inactive'" [class.badge-amber]="s.status==='maintenance'">
+          {{s.status.toUpperCase()}}
+        </span>
+      </div>
+      <div class="font-mono" style="font-size:11.5px;color:var(--tx-4)">{{s.uptime}}</div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,21 @@
+<div class="animate-fade-up">
+  <div class="section-label">REGISTRO DE AUDITORÍA COMPLETO</div>
+  <div class="card overflow-hidden">
+    <div class="th-row grid" style="grid-template-columns:158px 82px 172px 1fr 152px">
+      <div>TIMESTAMP</div><div>ID</div><div>HOSTNAME</div><div>EVENTO</div><div>USUARIO</div>
+    </div>
+    <div *ngFor="let l of logs; let i=index"
+      class="td-row grid items-center"
+      style="grid-template-columns:158px 82px 172px 1fr 152px"
+      [style.background]="i%2!==0 ? 'var(--bg-row-alt)' : ''">
+      <div class="font-mono" style="font-size:11.5px;color:var(--tx-4)">{{fmtDate(l.time)}}</div>
+      <div class="font-mono font-bold" style="font-size:11.5px;color:var(--ac-blue)">{{l.serverId}}</div>
+      <div class="font-rajdhani font-semibold" style="font-size:12.5px;color:var(--tx-2)">{{l.hostname}}</div>
+      <div class="flex items-center gap-2">
+        <span class="dot flex-shrink-0" style="width:6px;height:6px" [style.background]="logColor(l.type)"></span>
+        <span class="font-rajdhani" style="font-size:14.5px;color:var(--tx-2)">{{l.event}}</span>
+      </div>
+      <div class="font-rajdhani" style="font-size:12.5px;color:var(--tx-3)">{{l.user}}</div>
+    </div>
+  </div>
+</div>

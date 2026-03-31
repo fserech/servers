@@ -1,0 +1,42 @@
+<div class="modal-overlay">
+  <div class="modal-panel p-7 overflow-y-auto" style="width:560px;max-height:88vh">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+        style="background:linear-gradient(135deg,var(--ac-blue),#0057cc)">⬡</div>
+      <div>
+        <div class="font-orbitron font-black" style="font-size:17px;letter-spacing:.07em;color:var(--tx-1)">REGISTRAR SERVIDOR</div>
+        <div class="font-mono" style="font-size:11.5px;color:var(--tx-4);margin-top:2px">Nuevo nodo en inventario</div>
+      </div>
+    </div>
+    <form (ngSubmit)="submit()">
+      <div class="grid grid-cols-2 gap-4">
+        <div><label class="form-label">Hostname *</label>
+          <input [(ngModel)]="model.hostname" name="hostname" required class="input-field" placeholder="ej: web-app-prod-02"/></div>
+        <div><label class="form-label">Dirección IP *</label>
+          <input [(ngModel)]="model.ip" name="ip" required class="input-field" placeholder="ej: 192.168.10.55"/></div>
+        <div><label class="form-label">Dirección MAC *</label>
+          <input [(ngModel)]="model.mac" name="mac" required class="input-field" placeholder="ej: 00:1A:2B:3C:4D:EE"/></div>
+        <div><label class="form-label">Ubicación</label>
+          <select [(ngModel)]="model.location" name="location" class="input-field">
+            <option *ngFor="let o of locations" [value]="o">{{o}}</option></select></div>
+        <div><label class="form-label">Sistema Operativo</label>
+          <select [(ngModel)]="model.os" name="os" class="input-field">
+            <option *ngFor="let o of osList" [value]="o">{{o}}</option></select></div>
+        <div><label class="form-label">Departamento</label>
+          <select [(ngModel)]="model.department" name="department" class="input-field">
+            <option *ngFor="let o of departments" [value]="o">{{o}}</option></select></div>
+        <div><label class="form-label">Solicitado por</label>
+          <select [(ngModel)]="model.requestedBy" name="requestedBy" class="input-field">
+            <option *ngFor="let o of users" [value]="o">{{o}}</option></select></div>
+        <div><label class="form-label">Propósito / Función</label>
+          <input [(ngModel)]="model.purpose" name="purpose" class="input-field" placeholder="Función del servidor..."/></div>
+      </div>
+      <div class="flex gap-3 justify-end mt-5">
+        <button type="button" class="btn-ghost" (click)="close.emit()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="!model.hostname||!model.ip||!model.mac">
+          + Registrar Servidor
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

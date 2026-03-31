@@ -1,0 +1,167 @@
+<div class="animate-fade-up" *ngIf="result || meta">
+  <div class="flex items-center gap-3 mb-5 flex-wrap">
+    <button class="btn-ghost" (click)="router.navigate(['/monitor'])">← Monitor</button>
+    <div class="flex-1">
+      <div class="font-orbitron font-black" style="font-size:19px;color:var(--tx-1)">{{result?.hostname || meta?.hostname}}</div>
+      <div class="font-mono" style="font-size:10px;color:var(--tx-4);margin-top:2px">{{id}} · {{result?.ip}}</div>
+    </div>
+    <span class="badge" style="font-size:13px;padding:5px 18px"
+      [class.badge-green]="result?.status==='UP'" [class.badge-red]="result?.status==='DOWN'"
+      [class.badge-amber]="result?.status==='DEGRADED'||result?.status==='HTTP_ERROR'||result?.status==='PARTIAL'">
+      {{mon.statusLabel(result?.status || 'UNKNOWN')}}
+    </span>
+    <button class="btn-primary" (click)="forceCheck()" style="font-size:11px">⟳ Check ahora</button>
+  </div>
+
+  <div class="grid gap-4" style="grid-template-columns:1fr 320px">
+    <!-- Left: history bar chart + port details -->
+    <div class="flex flex-col gap-4">
+
+      <!-- Uptime strip (last 60 checks) -->
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-3">
+          <div class="section-label" style="margin-bottom:0">HISTORIAL ÚLTIMOS 60 CHECKS</div>
+          <div class="flex gap-4">
+            <span style="font-size:11px;color:var(--tx-3)">Disponibilidad: <strong [style.color]="'var(--ac-green)'">{{uptime}}</strong></span>
+            <span style="font-size:11px;color:var(--tx-3)">Latencia prom.: <strong style="color:var(--ac-blue)">{{avgLatency != null ? avgLatency+'ms' : '—'}}</strong></span>
+          </div>
+        </div>
+        <!-- Uptime bar chart -->
+        <div class="flex items-end gap-0.5" style="height:50px;overflow:hidden">
+          <div *ngFor="let h of history" class="flex-1 rounded-sm"
+            [style.height.px]="historyBarH(h, maxHistLatency)"
+            [style.background]="historyBarColor(h)"
+            [style.opacity]="h.status==='UP'?'0.75':'0.9'"
+            [style.min-width]="'3px'"
+            [title]="fmtTime(h.ts)+' — '+h.status+(h.latency?' ('+h.latency+'ms)':'')">
+          </div>
+          <div *ngIf="history.length===0" style="color:var(--tx-4);font-size:12px;align-self:center;flex:1;text-align:center">
+            Sin historial todavía
+          </div>
+        </div>
+        <div class="flex justify-between mt-1" style="font-size:8.5px;color:var(--tx-4)">
+          <span>{{history.length > 0 ? fmtTime(history[0].ts) : ''}}</span>
+          <span>← Más antiguo · Más reciente →</span>
+          <span>{{history.length > 0 ? fmtTime(history[history.length-1].ts) : ''}}</span>
+        </div>
+      </div>
+
+      <!-- Port results -->
+      <div class="card p-5">
+        <div class="section-label">RESULTADO DE PUERTOS TCP</div>
+        <div *ngIf="!result" style="font-size:12px;color:var(--tx-4)">Esperando primer check...</div>
+        <div class="grid grid-cols-2 gap-2 mt-2">
+          <div *ngFor="let p of result?.ports"
+            class="flex items-center justify-between rounded-xl px-4 py-3"
+            [style.background]="p.open?'var(--tint-green-bg)':'var(--tint-red-bg)'"
+            [style.border]="p.open?'1px solid var(--tint-green-br)':'1px solid var(--tint-red-br)'">
+            <div class="flex items-center gap-2">
+              <span style="font-size:18px">{{p.open ? '✓' : '✗'}}</span>
+              <div>
+                <div class="font-mono font-black" style="font-size:15px"
+                  [style.color]="p.open?'var(--ac-green)':'var(--ac-red)'">:{{p.port}}</div>
+                <div style="font-size:9.5px;color:var(--tx-3)">
+                  {{p.port===22?'SSH':p.port===80?'HTTP':p.port===443?'HTTPS':
+                    p.port===3306?'MySQL':p.port===5432?'PostgreSQL':p.port===1521?'Oracle':
+                    p.port===389?'LDAP':p.port===636?'LDAPS':p.port===88?'Kerberos':
+                    p.port===8080?'App-HTTP':p.port===8443?'App-HTTPS':
+                    p.port===2222?'Git-SSH':p.port===8006?'Proxmox':
+                    p.port===10051?'Zabbix':p.port===3000?'Grafana':'Puerto'}}
+                </div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="font-mono" style="font-size:11px"
+                [style.color]="p.open?'var(--ac-green)':'var(--ac-red)'">
+                {{p.open ? p.latency+'ms' : 'CERRADO'}}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HTTP result -->
+      <div *ngIf="result?.http" class="card p-5">
+        <div class="section-label">RESULTADO HTTP</div>
+        <div class="flex items-center gap-4 mt-2">
+          <div class="rounded-2xl flex items-center justify-center font-orbitron font-black"
+            style="width:64px;height:64px;font-size:18px;flex-shrink:0"
+            [style.background]="result!.http!.ok?'var(--tint-green-bg)':'var(--tint-red-bg)'"
+            [style.border]="result!.http!.ok?'2px solid var(--tint-green-br)':'2px solid var(--tint-red-br)'"
+            [style.color]="result!.http!.ok?'var(--ac-green)':'var(--ac-red)'">
+            {{result!.http!.status || '!'}}
+          </div>
+          <div>
+            <div class="font-rajdhani font-bold" style="font-size:16px"
+              [style.color]="result!.http!.ok?'var(--ac-green)':'var(--ac-red)'">
+              {{result!.http!.ok ? 'Respuesta OK' : 'ERROR — Sin respuesta válida'}}
+            </div>
+            <div class="font-mono" style="font-size:11px;color:var(--tx-3);margin-top:3px">
+              URL: {{result!.http!.url}}
+            </div>
+            <div class="font-mono" style="font-size:11px;color:var(--tx-3);margin-top:2px">
+              Tiempo de respuesta: <strong [style.color]="mon.latencyColor(result!.http!.latency)">{{result!.http!.latency}}ms</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right sidebar -->
+    <div class="flex flex-col gap-3">
+      <!-- Ping info -->
+      <div class="card p-4">
+        <div class="section-label">PING / ICMP</div>
+        <div class="text-center py-3">
+          <div class="font-orbitron font-black" style="font-size:40px;line-height:1"
+            [style.color]="result?.ping?.alive?'var(--ac-green)':'var(--ac-red)'">
+            {{result?.ping?.latency != null ? result!.ping.latency+'ms' : '—'}}
+          </div>
+          <div class="font-rajdhani font-bold" style="font-size:14px;margin-top:6px"
+            [style.color]="result?.ping?.alive?'var(--ac-green)':'var(--ac-red)'">
+            {{result?.ping?.alive ? '✓ RESPONDE' : '✗ SIN RESPUESTA'}}
+          </div>
+        </div>
+      </div>
+
+      <!-- Apps hosted -->
+      <div class="card p-4">
+        <div class="section-label">APLICACIONES</div>
+        <div *ngFor="let a of result?.apps || meta?.apps || []"
+          class="flex items-center gap-2 rounded-lg px-3 py-2 mt-1"
+          style="background:var(--bg-sunken);border:1px solid var(--br-section)">
+          <span style="font-size:13px">💾</span>
+          <span class="font-rajdhani font-semibold" style="font-size:12px;color:var(--tx-2)">{{a}}</span>
+        </div>
+      </div>
+
+      <!-- Authorized users -->
+      <div class="card p-4">
+        <div class="section-label">USUARIOS AUTORIZADOS</div>
+        <div *ngFor="let u of result?.authorizedUsers || meta?.authorizedUsers || []"
+          class="flex items-center gap-2 rounded-lg px-3 py-2 mt-1"
+          style="background:var(--bg-sunken);border:1px solid var(--br-section)">
+          <span style="font-size:12px">👤</span>
+          <span class="font-rajdhani font-semibold" style="font-size:12px;color:var(--tx-2)">{{u}}</span>
+        </div>
+      </div>
+
+      <!-- Last check details -->
+      <div class="card p-4" *ngIf="result">
+        <div class="section-label">ÚLTIMO CHECK</div>
+        <div *ngFor="let r of [
+          ['Timestamp', fmtDate(result.checkedAt)],
+          ['Puertos OK', portsOkStr(result)],
+          ['Estado general', mon.statusLabel(result.status)]]"
+          class="info-row">
+          <span class="info-label">{{r[0]}}</span>
+          <span class="info-val" style="font-family:\'Rajdhani\',sans-serif;font-size:12px">{{r[1]}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="!result && !meta" class="py-16 text-center" style="color:var(--tx-4)">
+  Target {{id}} no encontrado
+</div>

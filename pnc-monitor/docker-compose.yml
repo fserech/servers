@@ -1,0 +1,55 @@
+# PNC Monitor — Docker Compose (Windows/Mac/Linux compatible)
+# Levanta con: docker compose up -d
+
+services:
+
+  # ── BACKEND — Motor de monitoreo real (ping, TCP, HTTP) ────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pnc-monitor-backend
+    restart: unless-stopped
+    # NET_RAW es necesario para ping ICMP real
+    cap_add:
+      - NET_RAW
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: "3001"
+      CHECK_INTERVAL_SEC: "60"
+      DATA_DIR: "/data"
+      NODE_ENV: "production"
+    volumes:
+      - monitor_data:/data
+    networks:
+      - monitor-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # ── FRONTEND — Angular UI + Nginx ──────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pnc-monitor-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - monitor-net
+
+networks:
+  monitor-net:
+    driver: bridge
+
+volumes:
+  monitor_data:
+    driver: local

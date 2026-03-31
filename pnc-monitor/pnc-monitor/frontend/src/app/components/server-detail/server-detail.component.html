@@ -1,0 +1,240 @@
+<div *ngIf="server" class="animate-slide-right">
+
+  <!-- Page header -->
+  <div class="flex items-center gap-3 mb-5 flex-wrap">
+    <button class="btn-ghost" (click)="goBack()">← Volver</button>
+    <div class="flex-1 min-w-0">
+      <div class="font-orbitron font-black truncate" style="font-size:23px;letter-spacing:.06em;color:var(--tx-1)">{{server.hostname}}</div>
+      <div class="font-mono" style="font-size:11.5px;color:var(--tx-4);margin-top:2px">{{server.id}} · {{server.os}} · {{server.location}}</div>
+    </div>
+    <!-- Status pill -->
+    <div class="badge flex items-center gap-2"
+      style="padding:5px 14px;font-size:12.5px"
+      [class.badge-green]="server.status==='active'" [class.badge-red]="server.status!=='active'">
+      <span class="dot animate-pulse-dot"
+        [class.dot-green]="server.status==='active'" [class.dot-red]="server.status!=='active'"></span>
+      {{server.status==='active' ? 'EN LÍNEA' : 'FUERA DE LÍNEA'}}
+    </div>
+    <!-- Action buttons -->
+    <button class="btn-icon btn-icon-amber" style="padding:8px 14px;font-size:14px;letter-spacing:.06em;font-family:'Rajdhani',sans-serif;font-weight:700" (click)="showEditModal=true">
+      ✏️ Editar
+    </button>
+    <button *ngIf="server.status==='active'"  class="btn-danger"  (click)="shutdownTarget=server">⏻ Apagar</button>
+    <button *ngIf="server.status!=='active'" class="btn-primary" (click)="activate()">▶ Reactivar</button>
+    <button class="btn-icon btn-icon-ghost" style="padding:8px 12px;font-size:16px" (click)="deleteServer()">✕</button>
+  </div>
+
+  <!-- Live metrics -->
+  <div *ngIf="server.status==='active'" class="card p-5 mb-4">
+    <div class="section-label">MÉTRICAS EN TIEMPO REAL</div>
+    <div class="grid gap-4" style="grid-template-columns:repeat(4,1fr)">
+
+      <!-- CPU -->
+      <div class="flex flex-col items-center gap-2">
+        <svg width="80" height="80" viewBox="0 0 56 56">
+          <circle cx="28" cy="28" r="22" fill="none" class="gauge-track" stroke-width="5"/>
+          <circle cx="28" cy="28" r="22" fill="none"
+            [attr.stroke]="server.cpu>85 ? 'var(--ac-red)' : server.cpu>65 ? 'var(--ac-amber)' : 'var(--ac-blue)'"
+            stroke-width="5" stroke-linecap="round"
+            [attr.stroke-dasharray]="gaugeDash(server.cpu)" stroke-dashoffset="34.6"/>
+          <text x="28" y="31" text-anchor="middle" fill="var(--tx-1)"
+            font-size="10.5" font-family="Share Tech Mono,monospace" font-weight="700">{{server.cpu}}%</text>
+        </svg>
+        <span class="section-label" style="margin-bottom:0">CPU</span>
+        <svg width="110" height="28" viewBox="0 0 110 28" style="overflow:visible">
+          <defs><linearGradient id="gcpu" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="var(--ac-blue)" stop-opacity=".4"/>
+            <stop offset="100%" stop-color="var(--ac-blue)" stop-opacity="0"/>
+          </linearGradient></defs>
+          <polyline fill="none" stroke="var(--ac-blue)" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"
+            [attr.points]="sparkPoints(server.cpuHistory,110,28)"/>
+          <polygon fill="url(#gcpu)" [attr.points]="polyFill(server.cpuHistory,110,28)"/>
+        </svg>
+      </div>
+
+      <!-- RAM -->
+      <div class="flex flex-col items-center gap-2">
+        <svg width="80" height="80" viewBox="0 0 56 56">
+          <circle cx="28" cy="28" r="22" fill="none" class="gauge-track" stroke-width="5"/>
+          <circle cx="28" cy="28" r="22" fill="none"
+            [attr.stroke]="server.ram>85 ? 'var(--ac-red)' : server.ram>65 ? 'var(--ac-amber)' : 'var(--ac-purple)'"
+            stroke-width="5" stroke-linecap="round"
+            [attr.stroke-dasharray]="gaugeDash(server.ram)" stroke-dashoffset="34.6"/>
+          <text x="28" y="31" text-anchor="middle" fill="var(--tx-1)"
+            font-size="10.5" font-family="Share Tech Mono,monospace" font-weight="700">{{server.ram}}%</text>
+        </svg>
+        <span class="section-label" style="margin-bottom:0">RAM</span>
+        <svg width="110" height="28" viewBox="0 0 110 28" style="overflow:visible">
+          <defs><linearGradient id="gram" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="var(--ac-purple)" stop-opacity=".4"/>
+            <stop offset="100%" stop-color="var(--ac-purple)" stop-opacity="0"/>
+          </linearGradient></defs>
+          <polyline fill="none" stroke="var(--ac-purple)" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"
+            [attr.points]="sparkPoints(server.ramHistory,110,28)"/>
+          <polygon fill="url(#gram)" [attr.points]="polyFill(server.ramHistory,110,28)"/>
+        </svg>
+      </div>
+
+      <!-- Disk + Uptime -->
+      <div class="flex flex-col items-center gap-2">
+        <svg width="80" height="80" viewBox="0 0 56 56">
+          <circle cx="28" cy="28" r="22" fill="none" class="gauge-track" stroke-width="5"/>
+          <circle cx="28" cy="28" r="22" fill="none"
+            [attr.stroke]="server.disk>85 ? 'var(--ac-red)' : server.disk>65 ? 'var(--ac-amber)' : 'var(--ac-amber)'"
+            stroke-width="5" stroke-linecap="round"
+            [attr.stroke-dasharray]="gaugeDash(server.disk)" stroke-dashoffset="34.6"/>
+          <text x="28" y="31" text-anchor="middle" fill="var(--tx-1)"
+            font-size="10.5" font-family="Share Tech Mono,monospace" font-weight="700">{{server.disk}}%</text>
+        </svg>
+        <span class="section-label" style="margin-bottom:0">DISK</span>
+        <div class="text-center mt-2">
+          <div class="section-label" style="margin-bottom:2px">UPTIME</div>
+          <div class="font-mono font-bold" style="font-size:15px;color:var(--ac-green)">{{server.uptime}}</div>
+        </div>
+      </div>
+
+      <!-- Temp + Net + Services -->
+      <div class="flex flex-col gap-3">
+        <div class="rounded-xl p-3 text-center"
+          [style.background]="server.temp>70 ? 'var(--tint-red-bg)' : 'var(--tint-green-bg)'"
+          [style.border]="server.temp>70 ? '1px solid var(--tint-red-br)' : '1px solid var(--tint-green-br)'">
+          <div class="font-orbitron font-black" style="font-size:32px;line-height:1"
+            [style.color]="server.temp>70 ? 'var(--ac-red)' : 'var(--ac-green)'">{{server.temp}}°</div>
+          <div class="section-label" style="margin:3px 0 0;font-size:10px">TEMPERATURA</div>
+        </div>
+        <div>
+          <div class="font-mono font-bold text-center" style="font-size:17px;color:var(--ac-amber)">{{server.net}}</div>
+          <div class="section-label text-center" style="margin:2px 0 4px;font-size:10px">Kbps RED</div>
+          <svg width="110" height="28" viewBox="0 0 110 28" style="overflow:visible;display:block;margin:0 auto">
+            <defs><linearGradient id="gnet" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="var(--ac-amber)" stop-opacity=".4"/>
+              <stop offset="100%" stop-color="var(--ac-amber)" stop-opacity="0"/>
+            </linearGradient></defs>
+            <polyline fill="none" stroke="var(--ac-amber)" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"
+              [attr.points]="sparkPoints(server.netHistory,110,28)"/>
+            <polygon fill="url(#gnet)" [attr.points]="polyFill(server.netHistory,110,28)"/>
+          </svg>
+        </div>
+        <div>
+          <div class="section-label" style="margin-bottom:5px">SERVICIOS</div>
+          <div class="flex gap-1 flex-wrap">
+            <span *ngFor="let sv of server.services" class="font-mono rounded px-2 py-0.5"
+              style="font-size:11px;color:var(--tx-3);background:var(--bg-sunken);border:1px solid var(--br)">
+              {{sv}}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shutdown reason -->
+  <div *ngIf="server.status!=='active' && server.shutdownReason" class="rounded-xl p-4 mb-4"
+    style="background:var(--tint-red-bg);border:1px solid var(--tint-red-br)">
+    <div class="section-label" style="color:var(--ac-red);margin-bottom:6px">⚠ RAZÓN DE APAGADO</div>
+    <div style="font-size:16px;color:var(--tx-1);margin-bottom:5px">{{server.shutdownReason}}</div>
+    <div style="font-size:12.5px;color:var(--tx-3)">
+      Por <span style="color:var(--tx-2)">{{server.shutdownBy}}</span> · {{formatDate(server.shutdownAt||'')}}
+    </div>
+  </div>
+
+  <!-- Info cards -->
+  <div class="grid grid-cols-2 gap-4 mb-4">
+    <div class="card p-5">
+      <div class="section-label">RED E IDENTIDAD</div>
+      <div *ngFor="let r of [['IP',server.ip],['MAC',server.mac],['Hostname',server.hostname],['Rack/Slot',server.location],['OS',server.os],['Política FortiGate',server.fortiPolicy||'—']]"
+        class="info-row">
+        <span class="info-label">{{r[0]}}</span>
+        <span class="info-val">{{r[1]}}</span>
+      </div>
+    </div>
+    <div class="card p-5">
+      <div class="section-label">ADMINISTRACIÓN</div>
+      <div *ngFor="let r of [['Solicitante',server.requestedBy],['Departamento',server.department],['Propósito',server.purpose],['Creado',formatDate(server.createdAt)],['Último contacto',formatDate(server.lastSeen)]]"
+        class="info-row">
+        <span class="info-label">{{r[0]}}</span>
+        <span class="info-val" style="font-family:'Rajdhani',sans-serif">{{r[1]}}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ports + Applications + Authorized users -->
+  <div class="grid grid-cols-3 gap-4 mb-4">
+
+    <!-- Open ports -->
+    <div class="card p-5">
+      <div class="section-label">PUERTOS ABIERTOS</div>
+      <div class="flex flex-col gap-2 mt-1">
+        <div *ngFor="let port of server.openPorts"
+          class="flex items-center justify-between rounded-lg px-3 py-2"
+          style="background:var(--bg-sunken);border:1px solid var(--br-section)">
+          <div class="flex items-center gap-2">
+            <span class="font-mono font-black"
+              style="font-size:15px"
+              [style.color]="port===22?'var(--ac-amber)':port===80?'var(--ac-blue)':port===443?'var(--ac-green)':port===3306||port===5432||port===1521?'var(--ac-purple)':'var(--tx-2)'">
+              :{{port}}
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="font-rajdhani font-semibold" style="font-size:12.5px;color:var(--tx-3)">
+              {{server.portLabels?.[port] || '—'}}
+            </span>
+            <span class="dot animate-pulse-dot dot-green" style="width:7px;height:7px;flex-shrink:0"></span>
+          </div>
+        </div>
+        <div *ngIf="!server.openPorts?.length" style="font-size:14px;color:var(--tx-4)">Sin puertos registrados</div>
+      </div>
+    </div>
+
+    <!-- Applications hosted -->
+    <div class="card p-5">
+      <div class="section-label">APLICACIONES ALOJADAS</div>
+      <div class="flex flex-col gap-1.5 mt-1">
+        <div *ngFor="let app of server.applications"
+          class="flex items-center gap-2 rounded-lg px-3 py-2"
+          style="background:var(--bg-sunken);border:1px solid var(--br-section)">
+          <span style="font-size:15px">💾</span>
+          <span class="font-rajdhani font-semibold" style="font-size:14px;color:var(--tx-2)">{{app}}</span>
+        </div>
+        <div *ngIf="!server.applications?.length" style="font-size:14px;color:var(--tx-4)">Sin aplicaciones registradas</div>
+      </div>
+    </div>
+
+    <!-- Authorized users -->
+    <div class="card p-5">
+      <div class="section-label">USUARIOS / SECCIONES AUTORIZADAS</div>
+      <div class="flex flex-col gap-1.5 mt-1">
+        <div *ngFor="let u of server.authorizedUsers"
+          class="flex items-center gap-2 rounded-lg px-3 py-2"
+          style="background:var(--bg-sunken);border:1px solid var(--br-section)">
+          <span style="font-size:14px">👤</span>
+          <span class="font-rajdhani font-semibold" style="font-size:14px;color:var(--tx-2)">{{u}}</span>
+        </div>
+        <div *ngIf="!server.authorizedUsers?.length" style="font-size:14px;color:var(--tx-4)">Sin usuarios asignados</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Event log -->
+  <div class="card p-5">
+    <div class="section-label">HISTORIAL DE EVENTOS</div>
+    <div *ngFor="let l of server.logs.slice().reverse()" class="flex gap-3 py-2.5" style="border-bottom:1px solid var(--br-section)">
+      <div class="font-mono font-bold flex items-center justify-center rounded-lg flex-shrink-0"
+        style="width:30px;height:30px;font-size:14px"
+        [style.background]="logBg(l.type)" [style.color]="logColor(l.type)">
+        {{logIcon(l.type)}}
+      </div>
+      <div>
+        <div class="font-rajdhani font-semibold" style="font-size:15px;color:var(--tx-2)">{{l.event}}</div>
+        <div class="font-mono" style="font-size:11px;color:var(--tx-4);margin-top:2px">{{formatDate(l.time)}} · {{l.user}}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="!server" class="py-20 text-center" style="color:var(--tx-4);font-size:16px">Servidor no encontrado</div>
+
+<app-edit-server-modal *ngIf="showEditModal && server" [server]="server"
+  (close)="showEditModal=false" (save)="onEditSave($event)"></app-edit-server-modal>
+<app-shutdown-modal *ngIf="shutdownTarget" [server]="shutdownTarget"
+  (close)="shutdownTarget=null" (shutdown)="onShutdown($event)"></app-shutdown-modal>
